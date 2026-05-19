@@ -1,12 +1,139 @@
 // Bootstrap variable overrides
-$primary: #f53003;
+$primary: #b91c1c;
+$secondary: #475569;
+$success: #16a34a;
+$danger: #dc2626;
+$warning: #f59e0b;
+$info: #0ea5e9;
+$body-bg: #f5f6f8;
+$body-color: #1e293b;
+$border-color: #e2e8f0;
+
 $font-family-sans-serif: 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+$headings-font-weight: 600;
+$btn-font-weight: 500;
 
 // Google fonts
-@import url('https://fonts.bunny.net/css?family=instrument-sans:400,500,600&display=swap');
+@import url('https://fonts.bunny.net/css?family=instrument-sans:400,500,600,700&display=swap');
 
 // Bootstrap 5
 @import 'bootstrap/scss/bootstrap';
 
 // Bootstrap Icons
 @import 'bootstrap-icons/font/bootstrap-icons.css';
+
+// SPK Desa styles
+.spk-sidebar {
+    width: 260px;
+    min-height: 100vh;
+    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+    color: #e2e8f0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1030;
+    overflow-y: auto;
+
+    .sidebar-brand {
+        padding: 1.5rem 1.25rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        font-weight: 600;
+        color: #f8fafc;
+    }
+
+    .nav-link {
+        color: #cbd5e1;
+        padding: 0.625rem 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        border-left: 3px solid transparent;
+        transition: all 0.2s ease;
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #f8fafc;
+        }
+
+        &.active {
+            background: rgba(185, 28, 28, 0.15);
+            color: #fff;
+            border-left-color: $primary;
+        }
+
+        i {
+            font-size: 1.05rem;
+            width: 1.25rem;
+            text-align: center;
+        }
+    }
+
+    .nav-section {
+        padding: 0.75rem 1.25rem 0.5rem;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #64748b;
+    }
+}
+
+.spk-content {
+    margin-left: 260px;
+    min-height: 100vh;
+    background: $body-bg;
+}
+
+.spk-topbar {
+    background: #fff;
+    border-bottom: 1px solid $border-color;
+    padding: 0.75rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.spk-stat-card {
+    background: #fff;
+    border: 1px solid $border-color;
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+    height: 100%;
+
+    .stat-icon {
+        width: 3rem;
+        height: 3rem;
+        border-radius: 0.625rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    .stat-label {
+        color: $secondary;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: $body-color;
+        line-height: 1.1;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .spk-sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+
+        &.show {
+            transform: translateX(0);
+        }
+    }
+
+    .spk-content {
+        margin-left: 0;
+    }
+}
