@@ -19,5 +19,8 @@
 </a>
 
 <div class="nav-section">Hasil</div>
-<a href="#" class="nav-link"><i class="bi bi-clipboard-data"></i> Hasil Penilaian</a>
+<a href="{{ route('hasil.index') }}"
+   class="nav-link {{ str_starts_with($current ?? '', 'hasil.') ? 'active' : '' }}">
+    <i class="bi bi-clipboard-data"></i> Hasil Penilaian
+</a>
 <a href="#" class="nav-link"><i class="bi bi-printer"></i> Cetak Laporan</a>

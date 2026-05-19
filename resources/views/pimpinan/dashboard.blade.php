@@ -3,15 +3,7 @@
 @section('title', 'Dashboard Pimpinan')
 
 @section('sidebar')
-    <div class="nav-section">Menu Utama</div>
-    <a href="{{ route('pimpinan.dashboard') }}" class="nav-link active">
-        <i class="bi bi-speedometer2"></i> Dashboard
-    </a>
-
-    <div class="nav-section">Monitoring</div>
-    <a href="#" class="nav-link"><i class="bi bi-clipboard-data"></i> Hasil Penilaian</a>
-    <a href="#" class="nav-link"><i class="bi bi-trophy"></i> Peringkat Desa</a>
-    <a href="#" class="nav-link"><i class="bi bi-printer"></i> Cetak Laporan</a>
+    @include('pimpinan.partials.sidebar')
 @endsection
 
 @section('content')
@@ -79,11 +71,14 @@
     </div>
 
     <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-bottom py-3">
+        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
             <h2 class="h6 fw-semibold mb-0">
                 <i class="bi bi-trophy text-warning me-2"></i>
                 Peringkat Desa &mdash; {{ $periodeAktif?->nama ?? 'Belum ada periode' }}
             </h2>
+            <a href="{{ route('hasil.index') }}" class="btn btn-sm btn-outline-primary">
+                Lihat detail <i class="bi bi-arrow-right ms-1"></i>
+            </a>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">

@@ -4,6 +4,7 @@ use App\Enums\RoleSlug;
 use App\Http\Controllers\Admin;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Desa;
+use App\Http\Controllers\HasilPenilaianController;
 use App\Http\Controllers\Penilai;
 use App\Http\Controllers\Pimpinan;
 use App\Models\User;
@@ -29,6 +30,12 @@ Route::middleware('auth')->group(function () {
             ? redirect()->route($slug->dashboardRoute())
             : abort(403, 'Role pengguna belum diatur.');
     })->name('dashboard');
+
+    // Hasil penilaian — multi-role, scope-aware
+    Route::get('/hasil-penilaian', [HasilPenilaianController::class, 'index'])
+        ->name('hasil.index');
+    Route::get('/hasil-penilaian/{nilai}', [HasilPenilaianController::class, 'show'])
+        ->name('hasil.show');
 
     // Super Admin
     Route::middleware('role:'.RoleSlug::SuperAdmin->value)
