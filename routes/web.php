@@ -36,6 +36,20 @@ Route::middleware('auth')->group(function () {
         ->name('admin.')
         ->group(function () {
             Route::get('/', [Admin\DashboardController::class, 'index'])->name('dashboard');
+
+            Route::resource('pengguna', Admin\PenggunaController::class)
+                ->except(['show'])
+                ->parameters(['pengguna' => 'pengguna']);
+
+            Route::resource('desa', Admin\DesaController::class)->except(['show']);
+
+            Route::resource('periode', Admin\PeriodeController::class)
+                ->except(['show'])
+                ->parameters(['periode' => 'periode']);
+
+            Route::resource('kuesioner', Admin\KuesionerController::class)
+                ->except(['show'])
+                ->parameters(['kuesioner' => 'kuesioner']);
         });
 
     // Staff Admin Desa
@@ -44,6 +58,8 @@ Route::middleware('auth')->group(function () {
         ->name('desa.')
         ->group(function () {
             Route::get('/', [Desa\DashboardController::class, 'index'])->name('dashboard');
+            Route::get('profil', [Desa\ProfilDesaController::class, 'edit'])->name('profil.edit');
+            Route::put('profil', [Desa\ProfilDesaController::class, 'update'])->name('profil.update');
         });
 
     // Staff Penilaian
