@@ -13,4 +13,7 @@
    class="nav-link {{ str_starts_with($current ?? '', 'hasil.') ? 'active' : '' }}">
     <i class="bi bi-clipboard-data"></i> Hasil Penilaian
 </a>
-<a href="#" class="nav-link"><i class="bi bi-printer"></i> Cetak Laporan</a>
+<a href="{{ route('laporan.index') }}"
+   class="nav-link {{ str_starts_with($current ?? '', 'laporan.') ? 'active' : '' }}">
+    <i class="bi bi-printer"></i> Cetak Laporan
+</a>

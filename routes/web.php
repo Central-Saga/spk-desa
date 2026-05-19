@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Desa;
 use App\Http\Controllers\HasilPenilaianController;
+use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\Penilai;
 use App\Http\Controllers\Pimpinan;
 use App\Models\User;
@@ -37,6 +38,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/hasil-penilaian/{nilai}', [HasilPenilaianController::class, 'show'])
         ->name('hasil.show');
 
+    // Cetak laporan PDF — multi-role, scope-aware
+    Route::get('/laporan', [LaporanController::class, 'index'])
+        ->name('laporan.index');
+    Route::get('/laporan/rekapitulasi/{periode}', [LaporanController::class, 'rekapitulasi'])
+        ->name('laporan.rekapitulasi');
+    Route::get('/laporan/per-desa/{nilai}', [LaporanController::class, 'perDesa'])
+        ->name('laporan.per-desa');
+    Route::get('/laporan/audit-trail', [LaporanController::class, 'auditTrail'])
+        ->name('laporan.audit-trail');
+
     // Super Admin
     Route::middleware('role:'.RoleSlug::SuperAdmin->value)
         ->prefix('admin')
@@ -60,6 +71,9 @@ Route::middleware('auth')->group(function () {
 
             Route::get('nilai-akhir', [Admin\NilaiAkhirController::class, 'index'])->name('nilai-akhir.index');
             Route::post('nilai-akhir/{periode}/hitung', [Admin\NilaiAkhirController::class, 'hitung'])->name('nilai-akhir.hitung');
+
+            Route::get('audit-trail', [Admin\AuditTrailController::class, 'index'])->name('audit-trail.index');
+            Route::get('audit-trail/{auditTrail}', [Admin\AuditTrailController::class, 'show'])->name('audit-trail.show');
         });
 
     // Staff Admin Desa

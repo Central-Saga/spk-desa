@@ -26,7 +26,14 @@
 </a>
 
 <div class="nav-section">Penilaian</div>
-<a href="#" class="nav-link"><i class="bi bi-calendar-week"></i> Jadwal Visitasi</a>
+<a href="{{ route('penilai.jadwal-visitasi.index') }}"
+   class="nav-link {{ str_starts_with($current ?? '', 'penilai.jadwal-visitasi') ? 'active' : '' }}">
+    <i class="bi bi-calendar-week"></i> Jadwal Visitasi
+</a>
+<a href="{{ route('penilai.penilaian-visitasi.index') }}"
+   class="nav-link {{ str_starts_with($current ?? '', 'penilai.penilaian-visitasi') ? 'active' : '' }}">
+    <i class="bi bi-clipboard-check"></i> Input Penilaian Visitasi
+</a>
 <a href="{{ route('hasil.index') }}"
    class="nav-link {{ str_starts_with($current ?? '', 'hasil.') ? 'active' : '' }}">
     <i class="bi bi-clipboard-data"></i> Hasil Penilaian
@@ -37,5 +44,11 @@
 </a>
 
 <div class="nav-section">Lainnya</div>
-<a href="#" class="nav-link"><i class="bi bi-printer"></i> Laporan</a>
-<a href="#" class="nav-link"><i class="bi bi-shield-check"></i> Audit Trail</a>
+<a href="{{ route('laporan.index') }}"
+   class="nav-link {{ str_starts_with($current ?? '', 'laporan.') ? 'active' : '' }}">
+    <i class="bi bi-printer"></i> Cetak Laporan
+</a>
+<a href="{{ route('admin.audit-trail.index') }}"
+   class="nav-link {{ str_starts_with($current ?? '', 'admin.audit-trail') ? 'active' : '' }}">
+    <i class="bi bi-shield-check"></i> Audit Trail
+</a>
