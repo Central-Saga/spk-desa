@@ -13,7 +13,10 @@
    class="nav-link {{ str_starts_with($current ?? '', 'penilai.jadwal-visitasi') ? 'active' : '' }}">
     <i class="bi bi-calendar-week"></i> Jadwal Visitasi
 </a>
-<a href="#" class="nav-link"><i class="bi bi-clipboard-check"></i> Input Penilaian</a>
+<a href="{{ route('penilai.penilaian-visitasi.index') }}"
+   class="nav-link {{ str_starts_with($current ?? '', 'penilai.penilaian-visitasi') ? 'active' : '' }}">
+    <i class="bi bi-clipboard-check"></i> Input Penilaian
+</a>
 
 <div class="nav-section">Hasil</div>
 <a href="#" class="nav-link"><i class="bi bi-clipboard-data"></i> Hasil Penilaian</a>

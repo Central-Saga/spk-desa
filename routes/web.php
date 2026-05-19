@@ -73,6 +73,13 @@ Route::middleware('auth')->group(function () {
             Route::resource('jadwal-visitasi', Penilai\JadwalVisitasiController::class)
                 ->except(['show'])
                 ->parameters(['jadwal-visitasi' => 'jadwalVisitasi']);
+
+            Route::get('penilaian-visitasi', [Penilai\PenilaianVisitasiController::class, 'index'])
+                ->name('penilaian-visitasi.index');
+            Route::get('penilaian-visitasi/{jadwalVisitasi}', [Penilai\PenilaianVisitasiController::class, 'edit'])
+                ->name('penilaian-visitasi.edit');
+            Route::put('penilaian-visitasi/{jadwalVisitasi}', [Penilai\PenilaianVisitasiController::class, 'update'])
+                ->name('penilaian-visitasi.update');
         });
 
     // Pimpinan
