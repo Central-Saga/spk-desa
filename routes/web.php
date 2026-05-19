@@ -60,6 +60,8 @@ Route::middleware('auth')->group(function () {
             Route::get('/', [Desa\DashboardController::class, 'index'])->name('dashboard');
             Route::get('profil', [Desa\ProfilDesaController::class, 'edit'])->name('profil.edit');
             Route::put('profil', [Desa\ProfilDesaController::class, 'update'])->name('profil.update');
+            Route::get('kuesioner', [Desa\KuesionerController::class, 'edit'])->name('kuesioner.edit');
+            Route::put('kuesioner', [Desa\KuesionerController::class, 'update'])->name('kuesioner.update');
         });
 
     // Staff Penilaian

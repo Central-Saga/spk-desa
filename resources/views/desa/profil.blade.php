@@ -3,20 +3,7 @@
 @section('title', 'Profil Desa')
 
 @section('sidebar')
-    <div class="nav-section">Menu Utama</div>
-    <a href="{{ route('desa.dashboard') }}" class="nav-link">
-        <i class="bi bi-speedometer2"></i> Dashboard
-    </a>
-
-    <div class="nav-section">Pengisian</div>
-    <a href="#" class="nav-link"><i class="bi bi-pencil-square"></i> Isi Kuesioner</a>
-    <a href="{{ route('desa.profil.edit') }}" class="nav-link active">
-        <i class="bi bi-house-door"></i> Profil Desa
-    </a>
-
-    <div class="nav-section">Hasil</div>
-    <a href="#" class="nav-link"><i class="bi bi-clipboard-data"></i> Hasil Penilaian</a>
-    <a href="#" class="nav-link"><i class="bi bi-printer"></i> Cetak Laporan</a>
+    @include('desa.partials.sidebar')
 @endsection
 
 @section('content')
