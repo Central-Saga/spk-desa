@@ -24,6 +24,15 @@ This application is a Laravel application and its main Laravel ecosystems packag
 
 This project has domain-specific skills available in `**/skills/**`. You MUST activate the relevant skill whenever you work in that domain—don't wait until you're stuck.
 
+### Project-Specific Skills
+
+| Skill | Trigger When |
+|---|---|
+| **spk-desa** | Mengerjakan fitur Sistem Informasi Penilaian Kinerja Desa untuk Komisi Informasi Provinsi Bali — pengelolaan pengguna multi-role, master data desa, kuesioner, jadwal visitasi, penilaian visitasi, perhitungan nilai akhir (60% kuesioner + 40% visitasi), pemeringkatan, cetak laporan PDF, audit trail. **Wajib aktif untuk semua pekerjaan domain SPK Desa.** |
+| **laravel-best-practices** | Menulis/refactor Laravel PHP code (controller, model, migration, FormRequest, policy, job, service, Eloquent query). |
+| **pest-testing** | Menulis/edit/refactor Pest test (Feature, Unit, Browser). |
+| **tailwindcss-development** | **JANGAN AKTIFKAN** — project ini pakai Bootstrap 5, bukan Tailwind. Skill ini sengaja di-skip. |
+
 ## Conventions
 
 - You must follow all existing code conventions used in this application. When creating or editing a file, check sibling files for the correct structure, approach, and naming.
