@@ -1,0 +1,40 @@
+@extends('layouts.app')
+
+@section('title', 'Tambah Indikator Kuesioner')
+
+@section('sidebar')
+    @include('admin.partials.sidebar')
+@endsection
+
+@section('content')
+    <div class="mb-4">
+        <h1 class="h4 fw-semibold mb-1">Tambah Indikator Kuesioner</h1>
+        <p class="text-secondary mb-0 small">
+            Periode: <strong>{{ $periode->nama }}</strong>
+            &middot; Total bobot saat ini {{ number_format($totalBobot, 2) }} / 100
+            &middot; Sisa kuota {{ number_format($sisaBobot, 2) }}
+        </p>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <form method="POST" action="{{ route('admin.kuesioner.store') }}" novalidate>
+                @csrf
+                <input type="hidden" name="periode_id" value="{{ $periode->id }}">
+
+                @include('admin.kuesioner.partials.form', [
+                    'mode' => 'create',
+                    'kuesioner' => null,
+                    'urutanDefault' => $urutanBerikutnya,
+                    'sisaBobot' => $sisaBobot,
+                ])
+
+                <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                    <a href="{{ route('admin.kuesioner.index', ['periode' => $periode->id]) }}"
+                       class="btn btn-outline-secondary">Batal</a>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i> Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+@endsection
