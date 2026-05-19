@@ -1,0 +1,12 @@
+// Bootstrap variable overrides
+$primary: #f53003;
+$font-family-sans-serif: 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+// Google fonts
+@import url('https://fonts.bunny.net/css?family=instrument-sans:400,500,600&display=swap');
+
+// Bootstrap 5
+@import 'bootstrap/scss/bootstrap';
+
+// Bootstrap Icons
+@import 'bootstrap-icons/font/bootstrap-icons.css';
