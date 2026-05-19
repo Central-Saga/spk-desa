@@ -28,7 +28,10 @@
 <div class="nav-section">Penilaian</div>
 <a href="#" class="nav-link"><i class="bi bi-calendar-week"></i> Jadwal Visitasi</a>
 <a href="#" class="nav-link"><i class="bi bi-clipboard-data"></i> Hasil Penilaian</a>
-<a href="#" class="nav-link"><i class="bi bi-trophy"></i> Nilai Akhir</a>
+<a href="{{ route('admin.nilai-akhir.index') }}"
+   class="nav-link {{ str_starts_with($current ?? '', 'admin.nilai-akhir') ? 'active' : '' }}">
+    <i class="bi bi-trophy"></i> Nilai Akhir
+</a>
 
 <div class="nav-section">Lainnya</div>
 <a href="#" class="nav-link"><i class="bi bi-printer"></i> Laporan</a>

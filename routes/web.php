@@ -50,6 +50,9 @@ Route::middleware('auth')->group(function () {
             Route::resource('kuesioner', Admin\KuesionerController::class)
                 ->except(['show'])
                 ->parameters(['kuesioner' => 'kuesioner']);
+
+            Route::get('nilai-akhir', [Admin\NilaiAkhirController::class, 'index'])->name('nilai-akhir.index');
+            Route::post('nilai-akhir/{periode}/hitung', [Admin\NilaiAkhirController::class, 'hitung'])->name('nilai-akhir.hitung');
         });
 
     // Staff Admin Desa
