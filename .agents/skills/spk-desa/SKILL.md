@@ -92,7 +92,247 @@ audit_trail         (id, user_id, aksi, model_type?, model_id?, deskripsi,
 - `audit_trail.payload` simpan JSON before/after untuk perubahan data sensitif.
 - Soft delete (`SoftDeletes` trait) WAJIB untuk `desa`, `users`, `kuesioner` — data historis tidak boleh hilang.
 
-## Proses Utama (10 Proses)
+## Expanded Use Case (Acceptance Criteria per Fitur)
+
+Bagian ini berisi spesifikasi formal alur interaksi aktor ↔ sistem untuk setiap use case utama. **Gunakan sebagai acceptance criteria saat menulis controller, FormRequest, dan test Pest.** Setiap kasus mencakup prasyarat, alur utama (happy path), alur alternatif (sad path), dan pasca-kondisi.
+
+### UC-01: Login
+
+| Elemen | Deskripsi |
+|---|---|
+| **Aktor** | Super Admin, Staff Admin Desa, Staff Penilaian, Pimpinan |
+| **Tujuan** | Autentikasi pengguna + tetapkan hak akses berdasarkan role |
+| **Prasyarat** | Pengguna telah memiliki akun terdaftar (`users.is_active = true`) |
+| **Pemicu** | Pengguna membuka halaman login + submit credential |
+| **Alur Utama** | 1. Pengguna buka `/login` → 2. Input `username` + `password` → 3. Sistem validasi format → 4. Sistem cek match credential di DB → 5. Sistem regenerate session + redirect ke dashboard sesuai role |
+| **Alur Alternatif** | A1. Credential salah → tampilkan error "Kredensial tidak valid" + preserve `username` input. A2. Akun nonaktif (`is_active = false`) → logout otomatis + tampilkan "Akun Anda telah dinonaktifkan" |
+| **Pasca-Kondisi** | Session aktif + `audit_trail` mencatat aksi `login` + redirect ke dashboard role |
+
+**Test wajib:** happy path per role, credential salah, akun nonaktif, CSRF token absent, rate limiting (max 5 attempt / menit per IP).
+
+---
+
+### UC-02: Kelola Data Pengguna
+
+| Elemen | Deskripsi |
+|---|---|
+| **Aktor** | Super Admin |
+| **Tujuan** | CRUD akun pengguna sistem |
+| **Prasyarat** | Super Admin sudah login |
+| **Pemicu** | Super Admin pilih menu "Data Pengguna" |
+| **Alur Utama** | 1. Buka menu → 2. Sistem tampilkan list user (paginated) → 3. Pilih aksi tambah/ubah/hapus → 4. Submit form → 5. Sistem validasi (FormRequest) → 6. Sistem persist ke DB → 7. Redirect dengan flash success |
+| **Alur Alternatif** | A1. Field wajib kosong → return back dengan validation error. A2. `username` / `email` sudah dipakai → error "sudah digunakan". A3. Hapus user yang punya relasi (`jawaban_kuesioner`, `penilaian_visitasi`, `audit_trail`) → blokir hard delete, tawarkan deactivate (`is_active = false`) |
+| **Pasca-Kondisi** | Data user ter-create/update/deactivate + `audit_trail` mencatat aksi |
+
+**Validasi spesifik:**
+- `username` unique case-insensitive, alphanumeric + underscore, 3–50 karakter.
+- `email` unique + format valid.
+- `password` minimal 8 karakter saat create; saat update opsional (kosong = tidak ubah).
+- `role_id` wajib + harus exist.
+- Bila `role.slug = staff_admin_desa` → `desa_id` WAJIB; selain itu `desa_id` HARUS null.
+
+---
+
+### UC-03: Kelola Data Desa
+
+| Elemen | Deskripsi |
+|---|---|
+| **Aktor** | Super Admin (full CRUD), Staff Admin Desa (update only, scope desanya) |
+| **Tujuan** | Kelola identitas desa objek penilaian |
+| **Prasyarat** | Pengguna sudah login |
+| **Pemicu** | Pengguna pilih menu "Data Desa" |
+| **Alur Utama** | 1. Buka menu → 2. Sistem tampilkan list desa (Super Admin: semua; Staff Admin Desa: 1 record desanya) → 3. Pilih aksi tambah/ubah/lihat → 4. Submit form → 5. Sistem validasi → 6. Sistem persist → 7. Redirect dengan flash success |
+| **Alur Alternatif** | A1. Field wajib kosong → validation error. A2. Staff Admin Desa coba edit desa lain → 403 via `DesaPolicy::update`. A3. Staff Admin Desa coba aksi `create` / `destroy` → 403 (tidak diizinkan) |
+| **Pasca-Kondisi** | Data desa tersimpan + `audit_trail` mencatat |
+
+**Policy `DesaPolicy::update`:**
+```php
+public function update(User $user, Desa $desa): bool
+{
+    return match ($user->role->slug) {
+        'super_admin'      => true,
+        'staff_admin_desa' => $user->desa_id === $desa->id,
+        default            => false,
+    };
+}
+```
+
+---
+
+### UC-04: Kelola Data Kuesioner
+
+| Elemen | Deskripsi |
+|---|---|
+| **Aktor** | Super Admin |
+| **Tujuan** | Kelola indikator + pertanyaan + bobot kuesioner per periode |
+| **Prasyarat** | Super Admin sudah login + minimal 1 `periode_penilaian` ada |
+| **Pemicu** | Super Admin pilih menu "Kuesioner" |
+| **Alur Utama** | 1. Pilih periode → 2. Sistem tampilkan list indikator periode tersebut + total bobot saat ini → 3. Pilih aksi tambah/ubah/hapus → 4. Submit form → 5. Sistem validasi (termasuk total bobot ≤ 100) → 6. Sistem persist → 7. Redirect dengan flash success |
+| **Alur Alternatif** | A1. Field kosong → validation error. A2. Total `bobot_indikator` periode > 100 → tolak penyimpanan dengan pesan "Total bobot melebihi 100". A3. `kode_indikator` duplikat dalam periode → error unique. A4. Hapus indikator yang sudah ada `jawaban_kuesioner` → blokir, tawarkan soft delete |
+| **Pasca-Kondisi** | Indikator tersimpan + total bobot terupdate + `audit_trail` mencatat |
+
+**Validasi tambahan:**
+- Periode dengan `status = aktif` tidak boleh diubah indikatornya bila sudah ada `jawaban_kuesioner` (mencegah inconsistency hasil).
+- Periode bisa "dikunci" (`status = selesai`) → semua indikator read-only.
+
+---
+
+### UC-05: Isi Kuesioner
+
+| Elemen | Deskripsi |
+|---|---|
+| **Aktor** | Staff Admin Desa |
+| **Tujuan** | Submit jawaban kuesioner periode aktif untuk desa terkait |
+| **Prasyarat** | Login sebagai Staff Admin Desa + ada periode dengan `status = aktif` + `users.desa_id` tidak null |
+| **Pemicu** | Staff Admin Desa pilih menu "Isi Kuesioner" |
+| **Alur Utama** | 1. Buka menu → 2. Sistem tampilkan semua indikator periode aktif + jawaban tersimpan (jika sudah pernah save draft) → 3. Pengguna isi `jawaban` + `skor` (0–100) + `keterangan` opsional per indikator → 4. Pilih "Simpan Draft" atau "Submit Final" → 5. Sistem validasi semua field → 6. Sistem persist via `JawabanKuesionerService::simpan` → 7. Tampilkan notifikasi sukses |
+| **Alur Alternatif** | A1. Submit Final tapi ada indikator `skor` kosong → tampilkan peringatan "Masih ada N indikator belum diisi". A2. `skor < 0` atau `skor > 100` → validation error. A3. Periode `selesai` → form read-only. A4. Sudah Submit Final → form read-only kecuali Super Admin unlock |
+| **Pasca-Kondisi** | `jawaban_kuesioner` tersimpan dengan UNIQUE `(desa_id, kuesioner_id, periode_id)` + `audit_trail` mencatat |
+
+**Status flow jawaban:**
+```
+[Form Kosong] ──save draft──→ [Draft] ──save draft──→ [Draft]
+                                  │
+                                  └──submit final──→ [Final, read-only]
+                                                          │
+                                                          └──Super Admin unlock──→ [Draft]
+```
+
+---
+
+### UC-06: Kelola Jadwal Visitasi
+
+| Elemen | Deskripsi |
+|---|---|
+| **Aktor** | Super Admin, Staff Penilaian |
+| **Tujuan** | Atur jadwal kunjungan lapangan ke desa |
+| **Prasyarat** | Login + ada minimal 1 `desa` aktif + ada `periode_penilaian` aktif |
+| **Pemicu** | Pengguna pilih menu "Jadwal Visitasi" |
+| **Alur Utama** | 1. Buka menu → 2. Sistem tampilkan list jadwal (filter periode + status) → 3. Pilih aksi tambah/ubah → 4. Isi `desa_id`, `tanggal_visitasi`, `waktu_mulai`, `waktu_selesai`, `lokasi`, `petugas` → 5. Sistem validasi (termasuk konflik jadwal petugas) → 6. Sistem persist → 7. Redirect dengan flash success |
+| **Alur Alternatif** | A1. Field wajib kosong → validation error. A2. Petugas yang sama sudah punya jadwal di rentang waktu beririsan → tampilkan peringatan "Petugas X sudah punya jadwal di waktu yang sama". A3. `tanggal_visitasi` di masa lalu untuk status `terjadwal` → validation error. A4. `desa_id` sudah punya jadwal `selesai` di periode tersebut → konfirmasi sebelum tambah jadwal kedua |
+| **Pasca-Kondisi** | `jadwal_visitasi` tersimpan + petugas mendapat notifikasi (opsional, via mail queue) + `audit_trail` mencatat |
+
+**Validasi konflik jadwal:**
+```php
+$adaKonflik = JadwalVisitasi::query()
+    ->whereHas('petugas', fn ($q) => $q->where('users.id', $petugasId))
+    ->whereDate('tanggal_visitasi', $tanggalBaru)
+    ->where(function ($q) use ($mulai, $selesai) {
+        $q->whereBetween('waktu_mulai', [$mulai, $selesai])
+          ->orWhereBetween('waktu_selesai', [$mulai, $selesai]);
+    })
+    ->exists();
+```
+
+---
+
+### UC-07: Input Penilaian Visitasi
+
+| Elemen | Deskripsi |
+|---|---|
+| **Aktor** | Staff Penilaian |
+| **Tujuan** | Input skor hasil observasi lapangan setelah visitasi |
+| **Prasyarat** | Login sebagai Staff Penilaian + ada `jadwal_visitasi` dengan `status = selesai` untuk desa terkait |
+| **Pemicu** | Staff Penilaian pilih menu "Penilaian Visitasi" |
+| **Alur Utama** | 1. Buka menu → 2. Sistem tampilkan list desa yang jadwal visitasinya `selesai` di periode aktif tapi belum dinilai → 3. Pilih desa → 4. Sistem tampilkan form indikator visitasi + bobot → 5. Input `skor` (0–100) per indikator + `keterangan` opsional → 6. Submit → 7. Sistem validasi semua indikator terisi → 8. Sistem persist → 9. Notifikasi sukses |
+| **Alur Alternatif** | A1. Desa belum punya `jadwal_visitasi` `selesai` → blokir akses form penilaian + pesan "Visitasi belum dilaksanakan". A2. Skor di luar 0–100 → validation error. A3. Sudah pernah dinilai → form populated, edit (audit trail catat perubahan). A4. Total bobot indikator visitasi periode ≠ 100 → blokir submit + tampilkan peringatan ke Super Admin |
+| **Pasca-Kondisi** | `penilaian_visitasi` tersimpan untuk semua indikator + `audit_trail` mencatat + status jadwal otomatis berubah ke `selesai` (jika belum) |
+
+**Catatan integritas:** indikator visitasi disimpan terpisah dari kuesioner — tabel `kuesioner` HANYA untuk pengisian Staff Admin Desa. Indikator visitasi hardcoded di config atau seeder per periode (bisa dimasukkan ke tabel `kuesioner` dengan flag `tipe = visitasi` jika scope perlu DRY).
+
+---
+
+### UC-08: Hitung Nilai Akhir
+
+| Elemen | Deskripsi |
+|---|---|
+| **Aktor** | Super Admin |
+| **Tujuan** | Compute nilai akhir = (60% × kuesioner) + (40% × visitasi) + tetapkan ranking |
+| **Prasyarat** | Periode aktif punya minimal 1 desa dengan `jawaban_kuesioner` + `penilaian_visitasi` lengkap |
+| **Pemicu** | Super Admin klik tombol "Hitung Nilai Akhir" di menu nilai akhir |
+| **Alur Utama** | 1. Buka menu → 2. Pilih periode → 3. Sistem tampilkan ringkasan kelengkapan data per desa → 4. Klik "Hitung" → 5. Sistem load semua jawaban + nilai visitasi → 6. Sistem hitung weighted sum per desa via `PerhitunganNilaiService::hitungSatuDesa` → 7. Sistem sort desc + assign `peringkat` 1, 2, 3, ... → 8. Sistem persist `nilai_akhir` (UPSERT) → 9. Tampilkan tabel hasil + ranking |
+| **Alur Alternatif** | A1. Ada desa dengan kuesioner / visitasi belum lengkap → tampilkan modal konfirmasi: "X desa belum lengkap, lanjutkan?". Pilihan: skip desa tsb dari ranking ATAU hitung dengan nilai 0 (default skip). A2. Periode `status = selesai` → blokir recompute (data sudah final). A3. Data corrupt (misal bobot total > 100) → tolak proses + tampilkan error detail |
+| **Pasca-Kondisi** | `nilai_akhir` ter-create/update untuk setiap desa + ranking ter-assign + `audit_trail` mencatat aksi `compute_nilai` dengan payload jumlah desa |
+
+**Idempotency:** trigger ulang aman — `updateOrCreate` dengan UNIQUE `(desa_id, periode_id)` + ranking di-recompute total. Data sebelum/sesudah perubahan boleh disimpan di `audit_trail.payload` untuk traceability.
+
+**Edge case wajib di-test:**
+1. Semua desa lengkap → ranking 1..N berurutan tanpa gap.
+2. 2 desa nilai akhir sama → ranking sama (tied), desa berikutnya skip nomor (1, 2, 2, 4).
+3. Recompute setelah Staff Penilaian edit nilai visitasi → ranking berubah.
+4. Periode tanpa desa aktif → return collection kosong, tidak error.
+
+---
+
+### UC-09: Lihat Hasil Penilaian
+
+| Elemen | Deskripsi |
+|---|---|
+| **Aktor** | Semua role (scope berbeda) |
+| **Tujuan** | Tampilkan nilai kuesioner + nilai visitasi + nilai akhir + peringkat |
+| **Prasyarat** | Login + `nilai_akhir` periode terkait sudah dihitung |
+| **Pemicu** | Pengguna pilih menu "Hasil Penilaian" |
+| **Alur Utama** | 1. Buka menu → 2. Sistem tentukan scope berdasarkan role: <br> • Super Admin / Staff Penilaian / Pimpinan: semua desa <br> • Staff Admin Desa: hanya desanya → 3. Tampilkan tabel: nama desa, nilai_kuesioner, nilai_visitasi, nilai_akhir, peringkat → 4. Klik desa untuk detail breakdown per indikator |
+| **Alur Alternatif** | A1. Belum ada `nilai_akhir` → tampilkan empty state "Nilai akhir belum dihitung untuk periode ini". A2. Staff Admin Desa akses URL detail desa lain → 403 via `NilaiAkhirPolicy::view` |
+| **Pasca-Kondisi** | Pengguna melihat data sesuai scope-nya. Tidak ada perubahan state. |
+
+**Policy `NilaiAkhirPolicy::view`:**
+```php
+public function view(User $user, NilaiAkhir $nilai): bool
+{
+    return match ($user->role->slug) {
+        'super_admin', 'staff_penilaian', 'pimpinan' => true,
+        'staff_admin_desa'                            => $user->desa_id === $nilai->desa_id,
+    };
+}
+```
+
+---
+
+### UC-10: Cetak Laporan
+
+| Elemen | Deskripsi |
+|---|---|
+| **Aktor** | Semua role (scope = scope view-nya) |
+| **Tujuan** | Generate dokumen PDF hasil penilaian untuk dokumentasi/evaluasi |
+| **Prasyarat** | Login + `nilai_akhir` periode terkait sudah dihitung |
+| **Pemicu** | Pengguna pilih menu "Cetak Laporan" |
+| **Alur Utama** | 1. Buka menu → 2. Pilih jenis laporan: <br> • Per Desa (semua role, scope-aware) <br> • Rekapitulasi Periode (semua role, scope-aware) <br> • Audit Trail (Super Admin only) → 3. Pilih periode + filter (jika ada) → 4. Klik "Cetak PDF" → 5. Sistem load data via `LaporanService` → 6. Render Blade `resources/views/laporan/*.blade.php` → 7. DomPDF generate file → 8. Browser download / preview |
+| **Alur Alternatif** | A1. Belum ada data hasil → tampilkan pemberitahuan "Data laporan belum tersedia". A2. Staff Admin Desa pilih jenis "Rekapitulasi Periode" → policy izinkan tapi data di-filter hanya desanya. A3. Pimpinan pilih "Audit Trail" → 403 (bukan kewenangannya). A4. DomPDF gagal render (memory limit) → flash error + saran pakai filter lebih spesifik |
+| **Pasca-Kondisi** | File PDF terdownload / ter-preview + `audit_trail` mencatat aksi `print` dengan jenis laporan + periode |
+
+**Konvensi penamaan file:**
+```
+laporan-per-desa-{slug-desa}-{periode}.pdf       → laporan-per-desa-desa-bedugul-2025.pdf
+laporan-rekapitulasi-{periode}.pdf               → laporan-rekapitulasi-2025.pdf
+laporan-audit-trail-{tanggal-mulai}-{tanggal-selesai}.pdf
+```
+
+**Layout PDF (Blade):**
+- Header: logo Komisi Informasi Bali + "LAPORAN HASIL PENILAIAN APRESIASI DESA" + periode.
+- Info: tanggal cetak, dicetak oleh (nama + role).
+- Body: tabel data sesuai jenis laporan.
+- Footer: halaman X dari Y + tanda tangan space (untuk laporan formal).
+- Format: A4 portrait (rekapitulasi besar boleh landscape).
+
+---
+
+### Cross-Cutting Acceptance Criteria
+
+Berlaku untuk **SEMUA** use case di atas:
+
+1. **Audit Trail** — setiap aksi `create`, `update`, `delete`, `print`, `compute_nilai`, `login`, `logout` WAJIB tercatat di `audit_trail` via Observer atau explicit `AuditTrailService::record()`.
+2. **CSRF Protection** — semua form POST/PUT/DELETE pakai `@csrf` Blade directive.
+3. **Validation** — semua input lewat FormRequest (bukan inline `$request->validate()`), error messages dalam Bahasa Indonesia formal.
+4. **Authorization** — setiap action controller cek policy via `$this->authorize()` ATAU middleware role + policy gate.
+5. **Flash Message** — setiap aksi sukses/gagal redirect dengan flash session (`success`, `error`, `warning`) + ditampilkan via Bootstrap alert di layout.
+6. **Pagination** — list view selalu paginated (default 15/page) untuk hindari memory exhaustion.
+7. **Soft Delete** — `desa`, `users`, `kuesioner` pakai `SoftDeletes` trait; jangan hard delete kecuali Super Admin override.
+8. **Locale ID** — semua user-facing string Bahasa Indonesia formal (FormRequest custom messages, validation attributes, alert).
+
+## Proses Utama (Implementation Reference)
+
+Bagian ini berisi **kode contoh + design rationale** untuk setiap proses. Pakai bersamaan dengan Expanded Use Case di atas (UC = "what to test", Proses Utama = "how to build").
 
 ### 1. Login (semua role)
 
