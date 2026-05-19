@@ -65,11 +65,14 @@ Route::middleware('auth')->group(function () {
         });
 
     // Staff Penilaian
-    Route::middleware('role:'.RoleSlug::StaffPenilaian->value)
+    Route::middleware('role:'.RoleSlug::StaffPenilaian->value.','.RoleSlug::SuperAdmin->value)
         ->prefix('penilai')
         ->name('penilai.')
         ->group(function () {
             Route::get('/', [Penilai\DashboardController::class, 'index'])->name('dashboard');
+            Route::resource('jadwal-visitasi', Penilai\JadwalVisitasiController::class)
+                ->except(['show'])
+                ->parameters(['jadwal-visitasi' => 'jadwalVisitasi']);
         });
 
     // Pimpinan

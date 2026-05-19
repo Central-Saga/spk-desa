@@ -3,24 +3,18 @@
 @section('title', 'Dashboard Penilai')
 
 @section('sidebar')
-    <div class="nav-section">Menu Utama</div>
-    <a href="{{ route('penilai.dashboard') }}" class="nav-link active">
-        <i class="bi bi-speedometer2"></i> Dashboard
-    </a>
-
-    <div class="nav-section">Penilaian</div>
-    <a href="#" class="nav-link"><i class="bi bi-calendar-week"></i> Jadwal Visitasi</a>
-    <a href="#" class="nav-link"><i class="bi bi-clipboard-check"></i> Input Penilaian</a>
-
-    <div class="nav-section">Hasil</div>
-    <a href="#" class="nav-link"><i class="bi bi-clipboard-data"></i> Hasil Penilaian</a>
-    <a href="#" class="nav-link"><i class="bi bi-printer"></i> Cetak Laporan</a>
+    @include('penilai.partials.sidebar')
 @endsection
 
 @section('content')
-    <div class="mb-4">
-        <h1 class="h4 fw-semibold mb-1">Dashboard Penilai</h1>
-        <p class="text-secondary mb-0 small">Kelola jadwal visitasi dan input hasil penilaian lapangan.</p>
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+        <div>
+            <h1 class="h4 fw-semibold mb-1">Dashboard Penilai</h1>
+            <p class="text-secondary mb-0 small">Kelola jadwal visitasi dan input hasil penilaian lapangan.</p>
+        </div>
+        <a href="{{ route('penilai.jadwal-visitasi.create') }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i> Tambah Jadwal
+        </a>
     </div>
 
     <div class="row g-3 mb-4">
@@ -82,10 +76,13 @@
     </div>
 
     <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-bottom py-3">
+        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
             <h2 class="h6 fw-semibold mb-0">
                 <i class="bi bi-calendar-week text-primary me-2"></i>Jadwal Saya Terbaru
             </h2>
+            <a href="{{ route('penilai.jadwal-visitasi.index') }}" class="btn btn-sm btn-outline-primary">
+                Lihat semua <i class="bi bi-arrow-right ms-1"></i>
+            </a>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -102,7 +99,7 @@
                     <tbody>
                         @forelse ($jadwalSaya as $jadwal)
                             <tr>
-                                <td class="ps-3">{{ $jadwal->tanggal_visitasi->format('d M Y') }}</td>
+                                <td class="ps-3">{{ $jadwal->tanggal_visitasi->translatedFormat('d M Y') }}</td>
                                 <td>{{ $jadwal->desa->nama }}</td>
                                 <td class="text-secondary">{{ $jadwal->periode->nama }}</td>
                                 <td class="text-secondary">{{ $jadwal->lokasi }}</td>
