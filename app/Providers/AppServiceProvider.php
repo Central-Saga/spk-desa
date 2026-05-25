@@ -10,6 +10,7 @@ use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -26,6 +27,10 @@ class AppServiceProvider extends ServiceProvider
 
         App::setLocale('id');
         Carbon::setLocale('id');
+
+        if (App::isProduction()) {
+            URL::forceScheme('https');
+        }
 
         // Register audit trail observers
         Desa::observe(AuditTrailObserver::class);
