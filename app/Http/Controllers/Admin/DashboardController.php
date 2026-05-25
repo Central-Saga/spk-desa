@@ -23,6 +23,7 @@ class DashboardController extends Controller
 
         $rankingTerbaru = NilaiAkhir::query()
             ->with(['desa', 'periode'])
+            ->has('desa')
             ->orderBy('peringkat')
             ->limit(5)
             ->get();

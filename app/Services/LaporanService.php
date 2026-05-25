@@ -23,6 +23,7 @@ final class LaporanService
         $hasil = NilaiAkhir::query()
             ->with('desa')
             ->where('periode_id', $periode->id)
+            ->has('desa')
             ->orderBy('peringkat')
             ->get();
 
