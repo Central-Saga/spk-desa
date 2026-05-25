@@ -3,7 +3,7 @@
 @section('title', 'Isi Kuesioner Penilaian')
 
 @section('sidebar')
-    @include('desa.partials.sidebar')
+    @include($sidebarTemplate)
 @endsection
 
 @section('content')

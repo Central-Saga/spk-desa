@@ -9,7 +9,7 @@
 @section('content')
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
         <div>
-            <h1 class="h4 fw-semibold mb-1">Detail Hasil &mdash; {{ $nilai->desa->nama }}</h1>
+            <h1 class="h4 fw-semibold mb-1">Detail Hasil &mdash; {{ $nilai->desa?->nama ?? 'Desa tidak tersedia' }}</h1>
             <p class="text-secondary mb-0 small">
                 Periode: <strong>{{ $nilai->periode->nama }}</strong>
                 &middot; Dihitung {{ $nilai->dihitung_pada?->translatedFormat('d M Y H:i') ?? '—' }}

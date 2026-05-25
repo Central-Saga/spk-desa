@@ -3,7 +3,7 @@
 @section('title', 'Penilaian Visitasi - ' . $jadwal->desa->nama)
 
 @section('sidebar')
-    @include('penilai.partials.sidebar')
+    @include($sidebarTemplate)
 @endsection
 
 @section('content')
@@ -32,7 +32,7 @@
         Skor 0 sampai 100 per indikator. Sistem akan menghitung weighted sum saat perhitungan nilai akhir.
     </div>
 
-    <form method="POST" action="{{ route('penilai.penilaian-visitasi.update', $jadwal) }}" novalidate>
+    <form method="POST" action="{{ route('penilai.penilaian-visitasi.update', $jadwal) }}" enctype="multipart/form-data" novalidate>
         @csrf
         @method('PUT')
 
@@ -80,6 +80,26 @@
                                    value="{{ $ketVal }}"
                                    class="form-control form-control-sm"
                                    placeholder="Opsional">
+
+                            <label class="form-label small fw-medium mt-3">Bukti Gambar</label>
+                            <input type="file"
+                                   name="penilaian[{{ $idx }}][bukti_gambar]"
+                                   accept="image/*"
+                                   class="form-control form-control-sm @error('penilaian.'.$idx.'.bukti_gambar') is-invalid @enderror">
+                            @error("penilaian.{$idx}.bukti_gambar")
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+
+                            @if ($exist?->bukti_gambar)
+                                <div class="mt-2">
+                                    <a href="{{ asset('storage/'.$exist->bukti_gambar) }}" target="_blank" class="small text-decoration-none">
+                                        <i class="bi bi-image me-1"></i> Lihat bukti tersimpan
+                                    </a>
+                                    <img src="{{ asset('storage/'.$exist->bukti_gambar) }}"
+                                         alt="Bukti gambar {{ $item['nama'] }}"
+                                         class="img-thumbnail d-block mt-2 w-50">
+                                </div>
+                            @endif
                         </div>
                     </div>
                 @endforeach

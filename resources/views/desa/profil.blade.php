@@ -3,7 +3,7 @@
 @section('title', 'Profil Desa')
 
 @section('sidebar')
-    @include('desa.partials.sidebar')
+    @include($sidebarTemplate)
 @endsection
 
 @section('content')

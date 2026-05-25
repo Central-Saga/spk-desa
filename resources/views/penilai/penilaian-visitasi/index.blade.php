@@ -3,7 +3,7 @@
 @section('title', 'Input Penilaian Visitasi')
 
 @section('sidebar')
-    @include('penilai.partials.sidebar')
+    @include($sidebarTemplate)
 @endsection
 
 @section('content')

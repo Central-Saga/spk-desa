@@ -94,7 +94,7 @@
                                        target="_blank"
                                        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center small">
                                         <span>
-                                            #{{ $row->peringkat ?? '—' }} &middot; {{ $row->desa->nama }}
+                                            #{{ $row->peringkat ?? '—' }} &middot; {{ $row->desa?->nama ?? 'Desa tidak tersedia' }}
                                         </span>
                                         <span class="badge bg-primary">{{ number_format($row->nilai_akhir, 2) }}</span>
                                     </a>

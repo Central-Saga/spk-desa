@@ -103,7 +103,7 @@ final class PerhitunganNilaiService
         return (float) PenilaianVisitasi::query()
             ->where('desa_id', $desa->id)
             ->where('periode_id', $periode->id)
-            ->sum(DB::raw('skor * bobot / 100'));
+            ->sum(DB::raw('CAST(skor AS REAL) * bobot / 100'));
     }
 
     /**

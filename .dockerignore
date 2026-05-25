@@ -1,0 +1,11 @@
+vendor
+node_modules
+.git
+storage
+bootstrap/cache
+.env
+.env.testing
+tests
+*.md
+.artisan
+.phpunit*

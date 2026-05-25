@@ -20,6 +20,7 @@ class PenilaianVisitasi extends Model
         'skor',
         'bobot',
         'keterangan',
+        'bukti_gambar',
         'dinilai_oleh',
         'tanggal_input',
     ];

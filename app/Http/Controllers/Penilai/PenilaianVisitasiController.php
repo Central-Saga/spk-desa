@@ -13,8 +13,10 @@ use App\Services\AuditTrailService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class PenilaianVisitasiController extends Controller
 {
@@ -42,6 +44,7 @@ class PenilaianVisitasiController extends Controller
             'jadwal' => $jadwal,
             'statuses' => StatusVisitasi::cases(),
             'filters' => ['status' => $request->input('status')],
+            'sidebarTemplate' => 'penilai.partials.sidebar',
         ]);
     }
 
@@ -63,6 +66,7 @@ class PenilaianVisitasiController extends Controller
             'jadwal' => $jadwalVisitasi,
             'template' => $template,
             'existing' => $existing,
+            'sidebarTemplate' => 'penilai.partials.sidebar',
         ]);
     }
 
@@ -79,8 +83,24 @@ class PenilaianVisitasiController extends Controller
 
         $items = (array) $request->input('penilaian', []);
 
-        DB::transaction(function () use ($items, $jadwalVisitasi, $user) {
-            foreach ($items as $item) {
+        DB::transaction(function () use ($items, $jadwalVisitasi, $request, $user) {
+            foreach ($items as $index => $item) {
+                $penilaian = PenilaianVisitasi::query()
+                    ->where('jadwal_id', $jadwalVisitasi->id)
+                    ->where('indikator_visitasi', $item['indikator'])
+                    ->first();
+
+                $buktiGambar = $penilaian?->bukti_gambar;
+                $gambar = $request->file("penilaian.{$index}.bukti_gambar");
+
+                if ($gambar instanceof UploadedFile) {
+                    if (is_string($buktiGambar) && $buktiGambar !== '') {
+                        Storage::disk('public')->delete($buktiGambar);
+                    }
+
+                    $buktiGambar = $gambar->store('bukti-visitasi/'.$jadwalVisitasi->id, 'public');
+                }
+
                 PenilaianVisitasi::updateOrCreate(
                     [
                         'jadwal_id' => $jadwalVisitasi->id,
@@ -92,6 +112,7 @@ class PenilaianVisitasiController extends Controller
                         'skor' => (float) $item['skor'],
                         'bobot' => (float) $item['bobot'],
                         'keterangan' => $item['keterangan'] ?? null,
+                        'bukti_gambar' => $buktiGambar,
                         'dinilai_oleh' => $user->id,
                         'tanggal_input' => now(),
                     ]

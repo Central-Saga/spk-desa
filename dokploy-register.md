@@ -1,0 +1,65 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - region "Notifications alt+T"
+    - generic [ref=e3]:
+      - generic [ref=e4]:
+        - link "Dokploy" [ref=e6] [cursor=pointer]:
+          - /url: /
+          - img [ref=e7]
+          - text: Dokploy
+        - blockquote [ref=e12]:
+          - paragraph [ref=e13]: “The Open Source alternative to Netlify, Vercel, Heroku.”
+      - generic [ref=e14]:
+        - generic [ref=e18]:
+          - heading "Setup the server" [level=3] [ref=e19]:
+            - link [ref=e20] [cursor=pointer]:
+              - /url: /
+              - img [ref=e21]
+            - text: Setup the server
+          - paragraph [ref=e25]: Enter your email and password to setup the server
+          - generic [ref=e27]:
+            - generic [ref=e29]:
+              - generic [ref=e30]:
+                - text: First Name
+                - textbox "First Name" [ref=e32]:
+                  - /placeholder: John
+              - generic [ref=e33]:
+                - text: Last Name
+                - textbox "Last Name" [ref=e35]:
+                  - /placeholder: Doe
+              - generic [ref=e36]:
+                - text: Email
+                - textbox "Email" [ref=e38]:
+                  - /placeholder: email@dokploy.com
+              - generic [ref=e39]:
+                - text: Password
+                - generic [ref=e40]:
+                  - textbox "Password" [ref=e41]
+                  - button [ref=e43] [cursor=pointer]:
+                    - img [ref=e44]
+              - generic [ref=e47]:
+                - text: Confirm Password
+                - generic [ref=e48]:
+                  - textbox "Confirm Password" [ref=e49]:
+                    - /placeholder: Password
+                  - button [ref=e51] [cursor=pointer]:
+                    - img [ref=e52]
+              - button "Register" [ref=e55] [cursor=pointer]
+            - generic [ref=e57]:
+              - text: Need help?
+              - link "Contact us" [ref=e58] [cursor=pointer]:
+                - /url: https://dokploy.com
+        - generic [ref=e59]:
+          - button "github" [ref=e60] [cursor=pointer]:
+            - link "github" [ref=e61]:
+              - /url: https://github.com/dokploy/dokploy
+              - img "github" [ref=e62]
+          - button [ref=e64] [cursor=pointer]:
+            - link [ref=e65]:
+              - /url: https://x.com/getdokploy
+              - img [ref=e66]
+          - button [ref=e68] [cursor=pointer]:
+            - link [ref=e69]:
+              - /url: https://discord.com/invite/2tBnJ3jDJc
+              - img [ref=e70]
+  - alert [ref=e72]

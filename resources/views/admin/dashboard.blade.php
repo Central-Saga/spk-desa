@@ -3,7 +3,7 @@
 @section('title', 'Dashboard Super Admin')
 
 @section('sidebar')
-    @include('admin.partials.sidebar')
+    @include($sidebarTemplate)
 @endsection
 
 @section('content')
@@ -104,8 +104,8 @@
                                         #{{ $row->peringkat }}
                                     @endif
                                 </td>
-                                <td>{{ $row->desa->nama }}</td>
-                                <td class="text-secondary">{{ $row->periode->nama }}</td>
+                                <td>{{ $row->desa?->nama ?? 'Desa tidak tersedia' }}</td>
+                                <td class="text-secondary">{{ $row->periode?->nama ?? 'Periode tidak tersedia' }}</td>
                                 <td class="text-end">{{ number_format($row->nilai_kuesioner, 2) }}</td>
                                 <td class="text-end">{{ number_format($row->nilai_visitasi, 2) }}</td>
                                 <td class="text-end pe-3 fw-semibold text-primary">

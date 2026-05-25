@@ -3,7 +3,7 @@
 @section('title', 'Manajemen Pengguna')
 
 @section('sidebar')
-    @include('admin.partials.sidebar')
+    @include($sidebarTemplate)
 @endsection
 
 @section('content')

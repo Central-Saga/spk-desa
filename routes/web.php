@@ -16,7 +16,9 @@ Route::redirect('/', '/login');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [LoginController::class, 'authenticate'])->name('login.attempt');
+    Route::post('/login', [LoginController::class, 'authenticate'])
+        ->middleware('throttle:5,1')
+        ->name('login.attempt');
 });
 
 Route::middleware('auth')->group(function () {
