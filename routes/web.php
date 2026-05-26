@@ -106,6 +106,13 @@ Route::middleware('auth')->group(function () {
                 ->name('penilaian-visitasi.edit');
             Route::put('penilaian-visitasi/{jadwalVisitasi}', [Penilai\PenilaianVisitasiController::class, 'update'])
                 ->name('penilaian-visitasi.update');
+
+            Route::get('verifikasi-kuesioner', [Penilai\VerifikasiKuesionerController::class, 'index'])
+                ->name('verifikasi-kuesioner.index');
+            Route::get('verifikasi-kuesioner/{jadwalVisitasi}', [Penilai\VerifikasiKuesionerController::class, 'edit'])
+                ->name('verifikasi-kuesioner.edit');
+            Route::put('verifikasi-kuesioner/{jadwalVisitasi}', [Penilai\VerifikasiKuesionerController::class, 'update'])
+                ->name('verifikasi-kuesioner.update');
         });
 
     // Pimpinan
