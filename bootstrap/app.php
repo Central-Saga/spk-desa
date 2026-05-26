@@ -22,6 +22,8 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Request::HEADER_X_FORWARDED_PORT |
             \Illuminate\Http\Request::HEADER_X_FORWARDED_PROTO |
             \Illuminate\Http\Request::HEADER_X_FORWARDED_AWS_ELB);
+
+        $middleware->prepend(\App\Http\Middleware\ForceHttps::class);
     })
     ->booted(function () {
         if (app()->isProduction()) {
