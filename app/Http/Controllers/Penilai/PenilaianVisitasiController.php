@@ -6,6 +6,7 @@ use App\Enums\AksiAudit;
 use App\Enums\StatusVisitasi;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Penilai\SimpanPenilaianVisitasiRequest;
+use App\Models\IndikatorVisitasi;
 use App\Models\JadwalVisitasi;
 use App\Models\PenilaianVisitasi;
 use App\Models\User;
@@ -59,7 +60,12 @@ class PenilaianVisitasiController extends Controller
 
         $jadwalVisitasi->load(['desa', 'periode', 'petugas', 'penilaian']);
 
-        $template = config('penilaian_visitasi.indikator', []);
+        $template = IndikatorVisitasi::query()
+            ->where('periode_id', $jadwalVisitasi->periode_id)
+            ->where('is_active', true)
+            ->orderBy('urutan')
+            ->get();
+
         $existing = $jadwalVisitasi->penilaian->keyBy('indikator_visitasi');
 
         return view('penilai.penilaian-visitasi.edit', [

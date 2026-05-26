@@ -8,7 +8,7 @@
 
 @section('content')
     @php
-        $totalBobot = collect($template)->sum('bobot');
+        $totalBobot = $template->sum('bobot');
     @endphp
 
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
@@ -40,7 +40,7 @@
             <div class="card-body">
                 @foreach ($template as $idx => $item)
                     @php
-                        $exist = $existing->get($item['nama']);
+                        $exist = $existing->get($item->indikator_visitasi);
                         $skorVal = old("penilaian.{$idx}.skor", $exist?->skor);
                         $ketVal = old("penilaian.{$idx}.keterangan", $exist?->keterangan);
                     @endphp
@@ -48,16 +48,18 @@
                     <div class="row g-3 mb-3 pb-3 border-bottom">
                         <div class="col-md-7">
                             <div class="d-flex gap-2 align-items-start mb-1">
-                                <code class="small">{{ $item['kode'] }}</code>
+                                <code class="small">{{ $item->kode }}</code>
                                 <span class="badge bg-secondary-subtle text-secondary">
-                                    Bobot {{ number_format($item['bobot'], 2) }}
+                                    Bobot {{ number_format($item->bobot, 2) }}
                                 </span>
                             </div>
-                            <p class="mb-1 fw-medium">{{ $item['nama'] }}</p>
-                            <p class="text-secondary small mb-0">{{ $item['deskripsi'] }}</p>
+                            <p class="mb-1 fw-medium">{{ $item->indikator_visitasi }}</p>
+                            @if ($item->deskripsi)
+                                <p class="text-secondary small mb-0">{{ $item->deskripsi }}</p>
+                            @endif
 
-                            <input type="hidden" name="penilaian[{{ $idx }}][indikator]" value="{{ $item['nama'] }}">
-                            <input type="hidden" name="penilaian[{{ $idx }}][bobot]" value="{{ $item['bobot'] }}">
+                            <input type="hidden" name="penilaian[{{ $idx }}][indikator]" value="{{ $item->indikator_visitasi }}">
+                            <input type="hidden" name="penilaian[{{ $idx }}][bobot]" value="{{ $item->bobot }}">
                         </div>
 
                         <div class="col-md-2">
@@ -96,7 +98,7 @@
                                         <i class="bi bi-image me-1"></i> Lihat bukti tersimpan
                                     </a>
                                     <img src="{{ asset('storage/'.$exist->bukti_gambar) }}"
-                                         alt="Bukti gambar {{ $item['nama'] }}"
+                                         alt="Bukti gambar {{ $item->indikator_visitasi }}"
                                          class="img-thumbnail d-block mt-2 w-50">
                                 </div>
                             @endif
@@ -109,7 +111,7 @@
         <div class="card border-0 shadow-sm">
             <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-2">
                 <div class="text-secondary small">
-                    Sudah dinilai: <strong>{{ $existing->count() }}</strong> / {{ count($template) }} indikator
+                    Sudah dinilai: <strong>{{ $existing->count() }}</strong> / {{ $template->count() }} indikator
                 </div>
                 <button type="submit" class="btn btn-primary">
                     <i class="bi bi-check2-circle me-1"></i> Simpan Penilaian

@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Enums\StatusPeriode;
 use App\Models\Desa;
+use App\Models\IndikatorVisitasi;
 use App\Models\JadwalVisitasi;
 use App\Models\JawabanKuesioner;
 use App\Models\Kuesioner;
@@ -48,6 +49,21 @@ class DummyDataSeeder extends Seeder
             $data['periode_id'] = $periode->id;
             $data['is_active'] = true;
             $kuesionerList->push(Kuesioner::create($data));
+        }
+
+        // 2b) Indikator Visitasi — 5 indikator, total bobot = 100 (sesuai config/penilaian_visitasi)
+        $visitasiData = [
+            ['kode' => 'V-OBSV-01', 'kategori' => 'Observasi', 'indikator_visitasi' => 'Kondisi Fisik Kantor Desa', 'deskripsi' => 'Kelayakan dan kebersihan kantor desa sebagai pusat pelayanan publik.', 'bobot' => 20, 'urutan' => 1],
+            ['kode' => 'V-OBSV-02', 'kategori' => 'Observasi', 'indikator_visitasi' => 'Sarana Layanan Informasi', 'deskripsi' => 'Keberadaan papan informasi, layar publik, atau media transparansi anggaran.', 'bobot' => 25, 'urutan' => 2],
+            ['kode' => 'V-OBSV-03', 'kategori' => 'Observasi', 'indikator_visitasi' => 'Wawancara Warga & Aparatur', 'deskripsi' => 'Tingkat kepuasan warga atas keterbukaan informasi desa.', 'bobot' => 25, 'urutan' => 3],
+            ['kode' => 'V-OBSV-04', 'kategori' => 'Observasi', 'indikator_visitasi' => 'Dokumentasi Musyawarah Desa', 'deskripsi' => 'Bukti notulen, daftar hadir, dan dokumentasi musyawarah desa.', 'bobot' => 15, 'urutan' => 4],
+            ['kode' => 'V-OBSV-05', 'kategori' => 'Observasi', 'indikator_visitasi' => 'Inovasi Pelayanan', 'deskripsi' => 'Inovasi digital atau pelayanan publik berbasis transparansi informasi.', 'bobot' => 15, 'urutan' => 5],
+        ];
+
+        foreach ($visitasiData as $data) {
+            $data['periode_id'] = $periode->id;
+            $data['is_active'] = true;
+            IndikatorVisitasi::create($data);
         }
 
         // Jawaban deskriptif per desa per pertanyaan
@@ -117,16 +133,21 @@ class DummyDataSeeder extends Seeder
                 'dibuat_oleh' => $superAdminUser->id,
             ]);
 
-            // 5) Penilaian visitasi — 5 indikator
-            $templateIndikator = config('penilaian_visitasi.indikator', []);
-            foreach ($templateIndikator as $item) {
+            // 5) Penilaian visitasi — dari indikator_visitasi tabel
+            $indikatorList = IndikatorVisitasi::query()
+                ->where('periode_id', $periode->id)
+                ->where('is_active', true)
+                ->orderBy('urutan')
+                ->get();
+
+            foreach ($indikatorList as $indikator) {
                 PenilaianVisitasi::create([
                     'jadwal_id' => $jadwal->id,
                     'desa_id' => $desa->id,
                     'periode_id' => $periode->id,
-                    'indikator_visitasi' => $item['nama'],
+                    'indikator_visitasi' => $indikator->indikator_visitasi,
                     'skor' => fake()->numberBetween(50, 90),
-                    'bobot' => $item['bobot'],
+                    'bobot' => $indikator->bobot,
                     'keterangan' => fake()->optional()->sentence(),
                     'dinilai_oleh' => $penilaiUser->id,
                     'tanggal_input' => now(),

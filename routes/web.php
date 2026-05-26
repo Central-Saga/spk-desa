@@ -71,6 +71,10 @@ Route::middleware('auth')->group(function () {
                 ->except(['show'])
                 ->parameters(['kuesioner' => 'kuesioner']);
 
+            Route::resource('visitasi', Admin\VisitasiController::class)
+                ->except(['show'])
+                ->parameters(['visitasi' => 'visitasi']);
+
             Route::get('nilai-akhir', [Admin\NilaiAkhirController::class, 'index'])->name('nilai-akhir.index');
             Route::post('nilai-akhir/{periode}/hitung', [Admin\NilaiAkhirController::class, 'hitung'])->name('nilai-akhir.hitung');
 

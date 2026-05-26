@@ -24,6 +24,10 @@
    class="nav-link {{ str_starts_with($current ?? '', 'admin.kuesioner') ? 'active' : '' }}">
     <i class="bi bi-list-check"></i> Kuesioner
 </a>
+<a href="{{ route('admin.visitasi.index') }}"
+   class="nav-link {{ str_starts_with($current ?? '', 'admin.visitasi') ? 'active' : '' }}">
+    <i class="bi bi-clipboard-list"></i> Visitasi
+</a>
 
 <div class="nav-section">Penilaian</div>
 <a href="{{ route('penilai.jadwal-visitasi.index') }}"
