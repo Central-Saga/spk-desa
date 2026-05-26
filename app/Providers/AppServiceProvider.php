@@ -40,8 +40,9 @@ class AppServiceProvider extends ServiceProvider
         // Auto-inject sidebar template based on authenticated user role
         View::composer('*', function ($view) {
             if (! $view->offsetExists('sidebarTemplate')) {
+                /** @var \App\Models\User|null $user */
                 $user = Auth::user();
-                if ($user) {
+                if ($user instanceof \App\Models\User) {
                     $template = match (true) {
                         $user->isSuperAdmin() => 'admin.partials.sidebar',
                         $user->isStaffAdminDesa() => 'desa.partials.sidebar',

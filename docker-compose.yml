@@ -24,6 +24,9 @@ services:
       - CACHE_STORE=redis
       - QUEUE_CONNECTION=database
       - FILESYSTEM_DISK=local
+      - SESSION_DOMAIN=spkdesa-kibali.my.id
+      - SESSION_SECURE_COOKIE=false
+      - LOG_LEVEL=debug
     depends_on:
       mysql:
         condition: service_healthy
