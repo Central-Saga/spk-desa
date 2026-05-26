@@ -24,8 +24,6 @@ services:
       - CACHE_STORE=redis
       - QUEUE_CONNECTION=database
       - FILESYSTEM_DISK=local
-    ports:
-      - "80:80"
     depends_on:
       mysql:
         condition: service_healthy
