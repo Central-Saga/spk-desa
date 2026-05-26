@@ -9,7 +9,7 @@ services:
       - APP_ENV=production
       - APP_KEY=base64:jmw7EZZ0EsHljtd4Am+Nld40fUtQ+1TKW75SrCT3kp8=
       - APP_DEBUG=false
-      - APP_URL=http://43.157.197.43
+      - APP_URL=https://spkdesa-kibali.my.id
       - LOG_CHANNEL=single
       - LOG_LEVEL=warning
       - DB_CONNECTION=mysql
