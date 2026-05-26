@@ -29,7 +29,6 @@
     <div class="alert alert-info border-0 shadow-sm small">
         <i class="bi bi-info-circle me-2"></i>
         Verifikasi setiap pertanyaan kuesioner terhadap kondisi lapangan.
-        Pilih <strong>Ya</strong> jika jawaban desa sesuai, atau <strong>Tidak</strong> jika tidak sesuai.
         Total bobot kuesioner: <strong>{{ number_format($totalBobot, 2) }} / 100</strong>.
     </div>
 
@@ -60,20 +59,23 @@
                             </div>
                             <p class="mb-1 fw-medium">{{ $kues->pertanyaan }}</p>
 
+                            {{-- Jawaban Desa --}}
                             @if ($jawabanDesaItem)
                                 <div class="mt-2 p-2 bg-light rounded border small">
-                                    <div class="text-secondary mb-1">Jawaban Desa:</div>
-                                    <div class="fw-medium">{{ $jawabanDesaItem->jawaban ?? '-' }}</div>
-                                    <div class="d-flex gap-3 mt-1 text-secondary">
-                                        <span>Skor: <strong>{{ number_format($jawabanDesaItem->skor, 2) }}</strong></span>
-                                        <span>Status: <span class="badge bg-{{ $jawabanDesaItem->status->value === 'final' ? 'success' : 'warning' }}">{{ $jawabanDesaItem->status->label() }}</span></span>
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <span class="text-secondary">Jawaban Desa:</span>
+                                        @if ($jawabanDesaItem->status_jawaban === 'iya')
+                                            <span class="badge bg-success-subtle text-success">Iya</span>
+                                        @elseif ($jawabanDesaItem->status_jawaban === 'tidak')
+                                            <span class="badge bg-danger-subtle text-danger">Tidak</span>
+                                        @endif
+                                        <span class="text-secondary">Skor: {{ number_format($jawabanDesaItem->skor, 2) }}</span>
+                                        <span class="badge bg-{{ $jawabanDesaItem->status->value === 'final' ? 'success' : 'warning' }}">{{ $jawabanDesaItem->status->label() }}</span>
                                     </div>
-                                    @if ($jawabanDesaItem->keterangan)
-                                        <div class="text-secondary mt-1">Ket: {{ $jawabanDesaItem->keterangan }}</div>
-                                    @endif
+                                    <div class="fw-medium">{{ $jawabanDesaItem->jawaban ?? '-' }}</div>
                                 </div>
                             @else
-                                <div class="mt-2 p-2 bg-light rounded border small text-secondary">
+                                <div class="mt-2 small text-secondary">
                                     <i class="bi bi-exclamation-circle me-1"></i> Desa belum mengisi kuesioner ini.
                                 </div>
                             @endif
@@ -83,14 +85,17 @@
                         </div>
 
                         <div class="col-md-2">
-                            <label class="form-label small fw-medium">Jawaban
+                            <label class="form-label small fw-medium">Status Verifikasi
                                 <span class="text-danger">*</span></label>
                             <select name="verifikasi[{{ $idx }}][status_verifikasi]"
                                     class="form-select @error("verifikasi.{$idx}.status_verifikasi") is-invalid @enderror"
                                     required>
                                 <option value="">-- Pilih --</option>
-                                <option value="ya" @selected($statusVal === 'ya')>Ya</option>
-                                <option value="tidak" @selected($statusVal === 'tidak')>Tidak</option>
+                                @foreach ($statusOptions as $opt)
+                                    <option value="{{ $opt['value'] }}" @selected($statusVal === $opt['value'])>
+                                        {{ $opt['label'] }}
+                                    </option>
+                                @endforeach
                             </select>
                             @error("verifikasi.{$idx}.status_verifikasi")
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -98,7 +103,7 @@
                         </div>
 
                         <div class="col-md-3">
-                            <label class="form-label small fw-medium">Catatan</label>
+                            <label class="form-label small fw-medium">Catatan Verifikasi</label>
                             <textarea name="verifikasi[{{ $idx }}][catatan]"
                                       rows="2"
                                       class="form-control form-control-sm"

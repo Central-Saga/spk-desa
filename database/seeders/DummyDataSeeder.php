@@ -50,26 +50,64 @@ class DummyDataSeeder extends Seeder
             $kuesionerList->push(Kuesioner::create($data));
         }
 
+        // Jawaban deskriptif per desa per pertanyaan
+        $jawabanDeskriptif = [
+            'Desa Bedugul' => [
+                'K-TR-01' => ['jawaban' => 'Papan informasi tersedia di depan kantor desa dan diperbarui setiap bulan oleh staf administrasi.', 'status_jawaban' => 'iya'],
+                'K-TR-02' => ['jawaban' => 'Laporan keuangan sudah dipublikasikan melalui website resmi desa bedugul.go.id setiap akhir bulan.', 'status_jawaban' => 'iya'],
+                'K-PA-01' => ['jawaban' => 'Musyawarah desa rutin dilaksanakan setiap 3 bulan, tercatat dalam notulen resmi desa.', 'status_jawaban' => 'iya'],
+                'K-PL-01' => ['jawaban' => 'Standar pelayanan publik sudah tertulis dan dipasang di papan pengumuman kantor desa.', 'status_jawaban' => 'iya'],
+                'K-PL-02' => ['jawaban' => 'Tersedia kotak pengaduan dan formulir online di website desa untuk pengaduan masyarakat.', 'status_jawaban' => 'iya'],
+            ],
+            'Desa Penglipuran' => [
+                'K-TR-01' => ['jawaban' => 'Papan informasi sudah tersedia namun belum diperbarui secara rutin, terakhir diperbarui 3 bulan lalu.', 'status_jawaban' => 'iya'],
+                'K-TR-02' => ['jawaban' => 'Belum tersedia publikasi laporan keuangan melalui website, hanya ditempel di kantor desa.', 'status_jawaban' => 'tidak'],
+                'K-PA-01' => ['jawaban' => 'Musyawarah desa dilakukan 2 kali setahun, belum memenuhi standar minimal 3 kali.', 'status_jawaban' => 'tidak'],
+                'K-PL-01' => ['jawaban' => 'Dokumen standar pelayanan masih dalam proses penyusunan oleh perangkat desa.', 'status_jawaban' => 'iya'],
+                'K-PL-02' => ['jawaban' => 'Pengaduan masyarakat masih dilakukan secara manual melalui buku tamu di kantor desa.', 'status_jawaban' => 'iya'],
+            ],
+            'Desa Trunyan' => [
+                'K-TR-01' => ['jawaban' => 'Papan informasi tersedia di dua titik strategis desa dan diperbarui setiap bulan.', 'status_jawaban' => 'iya'],
+                'K-TR-02' => ['jawaban' => 'Laporan keuangan dipublikasikan melalui grup WhatsApp desa dan papan pengumuman.', 'status_jawaban' => 'iya'],
+                'K-PA-01' => ['jawaban' => 'Musyawarah desa rutin dilakukan setiap bulan, didokumentasikan dengan baik.', 'status_jawaban' => 'iya'],
+                'K-PL-01' => ['jawaban' => 'Dokumen standar pelayanan belum tersedia secara tertulis, hanya bersifat lisan.', 'status_jawaban' => 'tidak'],
+                'K-PL-02' => ['jawaban' => 'Mekanisme pengaduan masih sangat terbatas, warga biasanya langsung melapor ke kepala dusun.', 'status_jawaban' => 'tidak'],
+            ],
+        ];
+
+        $verifikasiStatuses = ['disetujui', 'ditolak', 'perlu_perbaikan'];
+
         foreach ($desaList as $desa) {
+            $namaSingkat = match ($desa->nama) {
+                'Desa Bedugul' => 'Desa Bedugul',
+                'Desa Penglipuran' => 'Desa Penglipuran',
+                'Desa Trunyan' => 'Desa Trunyan',
+                default => $desa->nama,
+            };
+
             // 3) Jawaban kuesioner dari staff desa (final)
             foreach ($kuesionerList as $kues) {
+                $dataJawaban = $jawabanDeskriptif[$namaSingkat][$kues->kode_indikator] ?? null;
+
                 JawabanKuesioner::create([
                     'desa_id' => $desa->id,
                     'kuesioner_id' => $kues->id,
                     'periode_id' => $periode->id,
-                    'jawaban' => "Jawaban {$desa->nama} untuk {$kues->kode_indikator}",
+                    'jawaban' => $dataJawaban['jawaban'] ?? 'Belum ada jawaban.',
+                    'status_jawaban' => $dataJawaban['status_jawaban'] ?? 'iya',
                     'skor' => fake()->numberBetween(60, 95),
-                    'keterangan' => fake()->optional(0.3)->sentence(),
+                    'keterangan' => null,
                     'status' => 'final',
                     'diisi_oleh' => $staffDesaUser->id,
                 ]);
             }
 
             // 4) Jadwal visitasi — status selesai
+            $tanggal = fake()->dateTimeBetween('2026-03-01', '2026-05-31');
             $jadwal = JadwalVisitasi::create([
                 'desa_id' => $desa->id,
                 'periode_id' => $periode->id,
-                'tanggal_visitasi' => fake()->dateTimeBetween('2026-03-01', '2026-05-31')->format('Y-m-d'),
+                'tanggal_visitasi' => $tanggal->format('Y-m-d'),
                 'waktu_mulai' => '09:00',
                 'waktu_selesai' => '12:00',
                 'lokasi' => "Kantor {$desa->nama}",
@@ -95,15 +133,22 @@ class DummyDataSeeder extends Seeder
                 ]);
             }
 
-            // 6) Verifikasi kuesioner
-            foreach ($kuesionerList as $kues) {
+            // 6) Verifikasi kuesioner — hanya 3 dari 5 diverifikasi
+            foreach ($kuesionerList->take(3) as $kues) {
+                $status = fake()->randomElement($verifikasiStatuses);
+                $catatan = match ($status) {
+                    'disetujui' => 'Jawaban sudah sesuai dengan hasil kunjungan lapangan.',
+                    'ditolak' => 'Data perlu diperbaiki karena belum sesuai kondisi lapangan.',
+                    'perlu_perbaikan' => 'Perlu melengkapi dokumen pendukung untuk validasi.',
+                };
+
                 VerifikasiKuesioner::create([
                     'jadwal_id' => $jadwal->id,
                     'desa_id' => $desa->id,
                     'periode_id' => $periode->id,
                     'kuesioner_id' => $kues->id,
-                    'status_verifikasi' => fake()->randomElement(['ya', 'tidak']),
-                    'catatan' => fake()->optional(0.4)->sentence(),
+                    'status_verifikasi' => $status,
+                    'catatan' => $catatan,
                     'diverifikasi_oleh' => $penilaiUser->id,
                     'tanggal_verifikasi' => now(),
                 ]);

@@ -16,7 +16,7 @@ class SimpanVerifikasiKuesionerRequest extends FormRequest
         return [
             'verifikasi' => ['required', 'array', 'min:1'],
             'verifikasi.*.kuesioner_id' => ['required', 'exists:kuesioner,id'],
-            'verifikasi.*.status_verifikasi' => ['required', 'in:ya,tidak'],
+            'verifikasi.*.status_verifikasi' => ['required', 'in:disetujui,ditolak,perlu_perbaikan'],
             'verifikasi.*.catatan' => ['nullable', 'string', 'max:500'],
             'verifikasi.*.jawaban_desa_skor' => ['nullable', 'numeric'],
             'verifikasi.*.jawaban_desa_teks' => ['nullable', 'string'],

@@ -18,6 +18,7 @@ class JawabanKuesioner extends Model
         'kuesioner_id',
         'periode_id',
         'jawaban',
+        'status_jawaban',
         'skor',
         'keterangan',
         'status',
