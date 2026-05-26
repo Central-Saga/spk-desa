@@ -1,0 +1,59 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    restart: unless-stopped
+    environment:
+      - APP_NAME=SPK Desa
+      - APP_ENV=production
+      - APP_KEY=base64:jmw7EZZ0EsHljtd4Am+Nld40fUtQ+1TKW75SrCT3kp8=
+      - APP_DEBUG=false
+      - APP_URL=http://43.157.197.43
+      - LOG_CHANNEL=single
+      - LOG_LEVEL=warning
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=spk_desa
+      - DB_USERNAME=spk
+      - DB_PASSWORD=spk_secret_2026
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - SESSION_DRIVER=redis
+      - CACHE_STORE=redis
+      - QUEUE_CONNECTION=database
+      - FILESYSTEM_DISK=local
+    ports:
+      - "80:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_secret_2026
+      - MYSQL_DATABASE=spk_desa
+      - MYSQL_USER=spk
+      - MYSQL_PASSWORD=spk_secret_2026
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot_secret_2026"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
+volumes:
+  mysql_data:
+  redis_data:
