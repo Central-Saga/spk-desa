@@ -18,7 +18,7 @@
                 <strong>{{ $jadwal->desa->nama }}</strong>
                 &middot; {{ $jadwal->periode->nama }}
                 &middot; {{ $jadwal->tanggal_visitasi->translatedFormat('d M Y') }}
-                &middot; Petugas {{ $jadwal->petugas->name }}
+                &middot; Petugas {{ $jadwal->petugas?->name ?? '—' }}
             </p>
         </div>
         <a href="{{ route('penilai.penilaian-visitasi.index') }}" class="btn btn-sm btn-outline-secondary">

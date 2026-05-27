@@ -13,7 +13,11 @@ class SimpanPenilaianVisitasiRequest extends FormRequest
         /** @var User|null $user */
         $user = $this->user();
 
-        return $user?->can('penilaian-visitasi.create') ?? false;
+        if (! $user) {
+            return false;
+        }
+
+        return $user->isStaffPenilaian() || $user->isSuperAdmin();
     }
 
     /**

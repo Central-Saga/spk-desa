@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Detail Hasil Penilaian - ' . $nilai->desa->nama)
+@section('title', 'Detail Hasil Penilaian - ' . ($nilai->desa?->nama ?? 'Desa tidak tersedia'))
 
 @section('sidebar')
     @include($sidebarTemplate)
