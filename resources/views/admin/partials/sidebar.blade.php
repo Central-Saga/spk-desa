@@ -26,7 +26,7 @@
 </a>
 <a href="{{ route('admin.visitasi.index') }}"
    class="nav-link {{ str_starts_with($current ?? '', 'admin.visitasi') ? 'active' : '' }}">
-    <i class="bi bi-clipboard-list"></i> Visitasi
+    <i class="bi bi-clipboard-pulse"></i> Visitasi
 </a>
 
 <div class="nav-section">Penilaian</div>
