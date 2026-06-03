@@ -14,6 +14,7 @@ class ForceHttps
         if (app()->isProduction()) {
             URL::forceScheme('https');
             $request->server->set('HTTPS', 'on');
+            $request->server->set('HTTP_X_FORWARDED_PROTO', 'https');
         }
 
         return $next($request);

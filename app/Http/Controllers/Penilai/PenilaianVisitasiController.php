@@ -45,7 +45,6 @@ class PenilaianVisitasiController extends Controller
             'jadwal' => $jadwal,
             'statuses' => StatusVisitasi::cases(),
             'filters' => ['status' => $request->input('status')],
-            'sidebarTemplate' => 'penilai.partials.sidebar',
         ]);
     }
 
@@ -72,7 +71,6 @@ class PenilaianVisitasiController extends Controller
             'jadwal' => $jadwalVisitasi,
             'template' => $template,
             'existing' => $existing,
-            'sidebarTemplate' => 'penilai.partials.sidebar',
         ]);
     }
 

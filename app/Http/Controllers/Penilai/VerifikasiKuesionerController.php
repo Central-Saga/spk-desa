@@ -85,7 +85,6 @@ class VerifikasiKuesionerController extends Controller
             'items' => $items,
             'statusOptions' => self::STATUS_OPTIONS,
             'filters' => ['status' => $request->input('status')],
-            'sidebarTemplate' => 'penilai.partials.sidebar',
         ]);
     }
 
@@ -127,7 +126,6 @@ class VerifikasiKuesionerController extends Controller
             'verifikasiExisting' => $verifikasiExisting,
             'totalBobot' => $totalBobot,
             'statusOptions' => self::STATUS_OPTIONS,
-            'sidebarTemplate' => 'penilai.partials.sidebar',
         ]);
     }
 

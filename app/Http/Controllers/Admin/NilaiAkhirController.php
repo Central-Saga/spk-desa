@@ -50,7 +50,6 @@ class NilaiAkhirController extends Controller
             'periodeOptions' => PeriodePenilaian::query()->orderBy('tahun', 'desc')->get(['id', 'nama', 'tahun', 'status']),
             'kelengkapan' => $kelengkapan,
             'hasil' => $hasil,
-            'sidebarTemplate' => 'admin.partials.sidebar',
         ]);
     }
 

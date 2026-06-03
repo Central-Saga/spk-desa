@@ -4,6 +4,18 @@ services:
       context: .
       dockerfile: docker/Dockerfile
     restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=dokploy-network"
+      - "traefik.http.routers.spkdesa-web.rule=Host(`spkdesa-kibali.my.id`)"
+      - "traefik.http.routers.spkdesa-web.entrypoints=web"
+      - "traefik.http.routers.spkdesa-web.middlewares=redirect-to-https@file"
+      - "traefik.http.routers.spkdesa-web.service=spkdesa-svc"
+      - "traefik.http.routers.spkdesa-websecure.rule=Host(`spkdesa-kibali.my.id`)"
+      - "traefik.http.routers.spkdesa-websecure.entrypoints=websecure"
+      - "traefik.http.routers.spkdesa-websecure.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.spkdesa-websecure.service=spkdesa-svc"
+      - "traefik.http.services.spkdesa-svc.loadbalancer.server.port=80"
     environment:
       - APP_NAME=SPK Desa
       - APP_ENV=production
