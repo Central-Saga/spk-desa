@@ -11,6 +11,7 @@
         <h1 class="h4 fw-semibold mb-1">Ubah Indikator Visitasi</h1>
         <p class="text-secondary mb-0 small">
             Periode: <strong>{{ $periode->nama }}</strong>
+            &middot; Desa: <strong>{{ $desa?->nama ?? '—' }}</strong>
             &middot; Sisa kuota bobot {{ number_format($sisaBobot, 2) }}
         </p>
     </div>
@@ -30,7 +31,7 @@
                 ])
 
                 <div class="d-flex justify-content-end gap-2 pt-3 border-top">
-                    <a href="{{ route('admin.visitasi.index', ['periode' => $periode->id, 'desa_id' => $visitasi->desa_id]) }}"
+                    <a href="{{ route('admin.visitasi.index', ['periode' => $periode->id, 'desa' => $visitasi->desa_id]) }}"
                        class="btn btn-outline-secondary">Batal</a>
                     <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i> Perbarui</button>
                 </div>
