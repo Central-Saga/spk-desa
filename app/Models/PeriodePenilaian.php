@@ -47,11 +47,6 @@ class PeriodePenilaian extends Model
         return $this->hasMany(JadwalVisitasi::class, 'periode_id');
     }
 
-    public function indikatorVisitasi(): HasMany
-    {
-        return $this->hasMany(IndikatorVisitasi::class, 'periode_id');
-    }
-
     public function penilaianVisitasi(): HasMany
     {
         return $this->hasMany(PenilaianVisitasi::class, 'periode_id');

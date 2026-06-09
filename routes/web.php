@@ -71,7 +71,6 @@ Route::middleware('auth')->group(function () {
                 ->except(['show'])
                 ->parameters(['kuesioner' => 'kuesioner']);
 
-            Route::post('visitasi/salin', [Admin\VisitasiController::class, 'salin'])->name('visitasi.salin');
             Route::resource('visitasi', Admin\VisitasiController::class)
                 ->except(['show'])
                 ->parameters(['visitasi' => 'visitasi']);

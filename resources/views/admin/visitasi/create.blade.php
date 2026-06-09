@@ -11,13 +11,8 @@
         <h1 class="h4 fw-semibold mb-1">Tambah Indikator Visitasi</h1>
         <p class="text-secondary mb-0 small">
             Periode: <strong>{{ $periode->nama }}</strong>
-            @if ($desa)
-                &middot; Desa: <strong>{{ $desa->nama }}</strong>
-                &middot; Total bobot saat ini {{ number_format($totalBobot, 2) }} / 100
-                &middot; Sisa kuota {{ number_format($sisaBobot, 2) }}
-            @else
-                &middot; Pilih desa pada form di bawah.
-            @endif
+            &middot; Total bobot saat ini {{ number_format($totalBobot, 2) }} / 100
+            &middot; Sisa kuota {{ number_format($sisaBobot, 2) }}
         </p>
     </div>
 
@@ -32,10 +27,11 @@
                     'visitasi' => null,
                     'urutanDefault' => $urutanBerikutnya,
                     'sisaBobot' => $sisaBobot,
+                    'defaultDesaId' => $defaultDesaId ?? null,
                 ])
 
                 <div class="d-flex justify-content-end gap-2 pt-3 border-top">
-                    <a href="{{ route('admin.visitasi.index', array_filter(['periode' => $periode->id, 'desa' => $desa?->id])) }}"
+                    <a href="{{ route('admin.visitasi.index', ['periode' => $periode->id, 'desa_id' => $defaultDesaId ?? '']) }}"
                        class="btn btn-outline-secondary">Batal</a>
                     <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i> Simpan</button>
                 </div>

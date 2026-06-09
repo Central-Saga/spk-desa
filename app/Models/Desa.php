@@ -49,11 +49,6 @@ class Desa extends Model
         return $this->hasMany(JadwalVisitasi::class);
     }
 
-    public function indikatorVisitasi(): HasMany
-    {
-        return $this->hasMany(IndikatorVisitasi::class, 'desa_id');
-    }
-
     public function penilaianVisitasi(): HasMany
     {
         return $this->hasMany(PenilaianVisitasi::class);
