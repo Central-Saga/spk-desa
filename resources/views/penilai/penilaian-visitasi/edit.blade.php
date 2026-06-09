@@ -28,8 +28,22 @@
 
     <div class="alert alert-info border-0 shadow-sm small">
         <i class="bi bi-info-circle me-2"></i>
-        Total bobot indikator visitasi: <strong>{{ number_format($totalBobot, 2) }} / 100</strong>.
-        Skor 0 sampai 100 per indikator. Sistem akan menghitung weighted sum saat perhitungan nilai akhir.
+        Total bobot indikator visitasi untuk <strong>{{ $jadwal->desa->nama }}</strong>:
+        <strong>{{ number_format($totalBobot, 2) }} / 100</strong>.
+        Skor 0 sampai 100 per indikator.
+        @php
+            $desaSpesifikCount = $template->where('desa_id', $jadwal->desa_id)->count();
+            $globalCount = $template->whereNull('desa_id')->count();
+        @endphp
+        @if ($desaSpesifikCount > 0)
+            <span class="ms-2 badge bg-info-subtle text-info border border-info-subtle">
+                {{ $desaSpesifikCount }} indikator khusus
+            </span>
+        @elseif ($globalCount > 0)
+            <span class="ms-2 badge bg-light text-secondary border">
+                Indikator global
+            </span>
+        @endif
     </div>
 
     <form method="POST" action="{{ route('penilai.penilaian-visitasi.update', $jadwal) }}" enctype="multipart/form-data" novalidate>
@@ -52,6 +66,11 @@
                                 <span class="badge bg-secondary-subtle text-secondary">
                                     Bobot {{ number_format($item->bobot, 2) }}
                                 </span>
+                                @if ($item->desa_id === $jadwal->desa_id)
+                                    <span class="badge bg-info-subtle text-info border border-info-subtle">Khusus {{ $jadwal->desa->nama }}</span>
+                                @else
+                                    <span class="badge bg-light text-secondary border">Global</span>
+                                @endif
                             </div>
                             <p class="mb-1 fw-medium">{{ $item->indikator_visitasi }}</p>
                             @if ($item->deskripsi)

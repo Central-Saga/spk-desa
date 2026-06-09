@@ -91,7 +91,11 @@
                                             Verifikasi
                                         </a>
                                     @else
-                                        <span class="text-secondary small">-</span>
+                                        <a href="{{ route('penilai.jadwal-visitasi.create', ['desa_id' => $row->desa_id]) }}"
+                                           class="btn btn-sm btn-outline-warning">
+                                            <i class="bi bi-calendar-plus me-1"></i>
+                                            Jadwalkan Dulu
+                                        </a>
                                     @endif
                                 </td>
                             </tr>

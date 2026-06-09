@@ -18,11 +18,15 @@ class StoreVisitasiRequest extends FormRequest
     {
         return [
             'periode_id' => ['required', 'integer', 'exists:periode_penilaian,id'],
+            'desa_id' => ['nullable', 'integer', 'exists:desa,id'],
             'kategori' => ['required', 'string', 'max:100'],
             'kode' => [
                 'required', 'string', 'max:50',
                 Rule::unique('indikator_visitasi', 'kode')
-                    ->where(fn ($q) => $q->where('periode_id', $this->input('periode_id'))),
+                    ->where(fn ($q) => $q
+                        ->where('periode_id', $this->input('periode_id'))
+                        ->where('desa_id', $this->input('desa_id')),
+                    ),
             ],
             'indikator_visitasi' => ['required', 'string'],
             'deskripsi' => ['nullable', 'string'],
@@ -35,8 +39,11 @@ class StoreVisitasiRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $v) {
+            $desaId = $this->input('desa_id') ?: null;
+
             $totalExisting = IndikatorVisitasi::query()
                 ->where('periode_id', $this->input('periode_id'))
+                ->where('desa_id', $desaId)
                 ->sum('bobot');
 
             $bobotBaru = (float) $this->input('bobot', 0);
@@ -44,9 +51,10 @@ class StoreVisitasiRequest extends FormRequest
 
             if (round($totalAkhir, 2) > 100) {
                 $sisa = max(0, round(100 - (float) $totalExisting, 2));
+                $scope = $desaId ? 'desa ini' : 'global';
                 $v->errors()->add(
                     'bobot',
-                    "Total bobot indikator periode ini akan menjadi {$totalAkhir} (melebihi 100). Sisa kuota: {$sisa}."
+                    "Total bobot indikator {$scope} akan menjadi {$totalAkhir} (melebihi 100). Sisa kuota: {$sisa}."
                 );
             }
         });
@@ -56,6 +64,7 @@ class StoreVisitasiRequest extends FormRequest
     {
         return [
             'periode_id' => 'periode penilaian',
+            'desa_id' => 'desa',
             'kategori' => 'kategori',
             'kode' => 'kode indikator',
             'indikator_visitasi' => 'indikator visitasi',

@@ -27,10 +27,11 @@
                     'visitasi' => null,
                     'urutanDefault' => $urutanBerikutnya,
                     'sisaBobot' => $sisaBobot,
+                    'defaultDesaId' => $defaultDesaId ?? null,
                 ])
 
                 <div class="d-flex justify-content-end gap-2 pt-3 border-top">
-                    <a href="{{ route('admin.visitasi.index', ['periode' => $periode->id]) }}"
+                    <a href="{{ route('admin.visitasi.index', ['periode' => $periode->id, 'desa_id' => $defaultDesaId ?? '']) }}"
                        class="btn btn-outline-secondary">Batal</a>
                     <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i> Simpan</button>
                 </div>

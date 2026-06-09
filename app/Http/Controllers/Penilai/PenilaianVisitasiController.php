@@ -59,8 +59,25 @@ class PenilaianVisitasiController extends Controller
 
         $jadwalVisitasi->load(['desa', 'periode', 'petugas', 'penilaian']);
 
+        // Load indikator: jika desa punya indikator khusus, pakai itu saja (replace global)
+        // Jika tidak, pakai indikator global (desa_id = null)
+        $hasSpecific = IndikatorVisitasi::query()
+            ->where('periode_id', $jadwalVisitasi->periode_id)
+            ->where('desa_id', $jadwalVisitasi->desa_id)
+            ->where('is_active', true)
+            ->exists();
+
         $template = IndikatorVisitasi::query()
             ->where('periode_id', $jadwalVisitasi->periode_id)
+            ->where(function ($q) use ($jadwalVisitasi, $hasSpecific) {
+                if ($hasSpecific) {
+                    // Hanya indikator khusus desa ini
+                    $q->where('desa_id', $jadwalVisitasi->desa_id);
+                } else {
+                    // Indikator global (berlaku untuk semua desa)
+                    $q->whereNull('desa_id');
+                }
+            })
             ->where('is_active', true)
             ->orderBy('urutan')
             ->get();

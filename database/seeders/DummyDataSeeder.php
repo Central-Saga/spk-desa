@@ -51,8 +51,8 @@ class DummyDataSeeder extends Seeder
             $kuesionerList->push(Kuesioner::create($data));
         }
 
-        // 2b) Indikator Visitasi — 5 indikator, total bobot = 100 (sesuai config/penilaian_visitasi)
-        $visitasiData = [
+        // 2b) Indikator Visitasi — 5 indikator GLOBAL, total bobot = 100 (berlaku untuk semua desa)
+        $visitasiGlobalData = [
             ['kode' => 'V-OBSV-01', 'kategori' => 'Observasi', 'indikator_visitasi' => 'Kondisi Fisik Kantor Desa', 'deskripsi' => 'Kelayakan dan kebersihan kantor desa sebagai pusat pelayanan publik.', 'bobot' => 20, 'urutan' => 1],
             ['kode' => 'V-OBSV-02', 'kategori' => 'Observasi', 'indikator_visitasi' => 'Sarana Layanan Informasi', 'deskripsi' => 'Keberadaan papan informasi, layar publik, atau media transparansi anggaran.', 'bobot' => 25, 'urutan' => 2],
             ['kode' => 'V-OBSV-03', 'kategori' => 'Observasi', 'indikator_visitasi' => 'Wawancara Warga & Aparatur', 'deskripsi' => 'Tingkat kepuasan warga atas keterbukaan informasi desa.', 'bobot' => 25, 'urutan' => 3],
@@ -60,8 +60,24 @@ class DummyDataSeeder extends Seeder
             ['kode' => 'V-OBSV-05', 'kategori' => 'Observasi', 'indikator_visitasi' => 'Inovasi Pelayanan', 'deskripsi' => 'Inovasi digital atau pelayanan publik berbasis transparansi informasi.', 'bobot' => 15, 'urutan' => 5],
         ];
 
-        foreach ($visitasiData as $data) {
+        foreach ($visitasiGlobalData as $data) {
             $data['periode_id'] = $periode->id;
+            $data['desa_id'] = null;
+            $data['is_active'] = true;
+            IndikatorVisitasi::create($data);
+        }
+
+        // 2c) Indikator Visitasi PER-DESA — khusus untuk Desa Bedugul (bobot sendiri 100)
+        $desaBedugul = $desaList->firstWhere('nama', 'Desa Bedugul');
+        $visitasiPerDesaData = [
+            ['kode' => 'V-BDG-01', 'kategori' => 'Khusus', 'indikator_visitasi' => 'Program Inovasi Informasi Publik', 'deskripsi' => 'Penilaian khusus program inovasi Desa Bedugul dalam keterbukaan informasi publik.', 'bobot' => 40, 'urutan' => 1],
+            ['kode' => 'V-BDG-02', 'kategori' => 'Khusus', 'indikator_visitasi' => 'Kesiapan Infrastruktur Digital', 'deskripsi' => 'Kesiapan Desa Bedugul dalam mengadopsi layanan informasi berbasis digital.', 'bobot' => 30, 'urutan' => 2],
+            ['kode' => 'V-BDG-03', 'kategori' => 'Khusus', 'indikator_visitasi' => 'Keaktifan Partisipasi Masyarakat', 'deskripsi' => 'Tingkat partisipasi masyarakat Desa Bedugul dalam musyawarah desa.', 'bobot' => 30, 'urutan' => 3],
+        ];
+
+        foreach ($visitasiPerDesaData as $data) {
+            $data['periode_id'] = $periode->id;
+            $data['desa_id'] = $desaBedugul->id;
             $data['is_active'] = true;
             IndikatorVisitasi::create($data);
         }
@@ -133,10 +149,23 @@ class DummyDataSeeder extends Seeder
                 'dibuat_oleh' => $superAdminUser->id,
             ]);
 
-            // 5) Penilaian visitasi — dari indikator_visitasi tabel
+            // 5) Penilaian visitasi — dari indikator_visitasi tabel (per-desa replace global)
+            $hasSpecific = IndikatorVisitasi::query()
+                ->where('periode_id', $periode->id)
+                ->where('desa_id', $desa->id)
+                ->where('is_active', true)
+                ->exists();
+
             $indikatorList = IndikatorVisitasi::query()
                 ->where('periode_id', $periode->id)
                 ->where('is_active', true)
+                ->where(function ($q) use ($desa, $hasSpecific) {
+                    if ($hasSpecific) {
+                        $q->where('desa_id', $desa->id);
+                    } else {
+                        $q->whereNull('desa_id');
+                    }
+                })
                 ->orderBy('urutan')
                 ->get();
 

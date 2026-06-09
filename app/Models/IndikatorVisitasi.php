@@ -11,6 +11,7 @@ class IndikatorVisitasi extends Model
 
     protected $fillable = [
         'periode_id',
+        'desa_id',
         'kategori',
         'kode',
         'indikator_visitasi',
@@ -32,5 +33,10 @@ class IndikatorVisitasi extends Model
     public function periode(): BelongsTo
     {
         return $this->belongsTo(PeriodePenilaian::class, 'periode_id');
+    }
+
+    public function desa(): BelongsTo
+    {
+        return $this->belongsTo(Desa::class);
     }
 }

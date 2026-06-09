@@ -55,8 +55,10 @@ class VerifikasiKuesionerController extends Controller
                     ->on('jawaban_kuesioner.periode_id', '=', 'vk.periode_id');
             })
             ->addSelect(
+                'jv.id as jadwal_id',
                 'jv.tanggal_visitasi',
                 'jv.petugas_id',
+                'jv.status as jadwal_status',
                 'vk.status_verifikasi as verifikasi_status',
                 'vk.catatan as verifikasi_catatan',
                 'vk.id as verifikasi_id',
@@ -64,7 +66,12 @@ class VerifikasiKuesionerController extends Controller
             ->with(['desa.jadwalVisitasi' => fn ($q) => $q->orderByDesc('tanggal_visitasi')]);
 
         if (! $user->isSuperAdmin()) {
-            $query->where('jv.petugas_id', $user->id);
+            // Tampilkan semua desa — baik yg punya jadwal (ditugaskan ke user ini)
+            // maupun yg belum punya jadwal sama sekali
+            $query->where(function ($q) use ($user) {
+                $q->where('jv.petugas_id', $user->id)
+                    ->orWhereNull('jv.id');
+            });
         }
 
         if ($status = $request->string('status')->trim()->toString()) {
