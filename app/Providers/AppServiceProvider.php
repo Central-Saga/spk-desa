@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\Desa;
 use App\Models\Kuesioner;
 use App\Models\NilaiAkhir;
+use App\Models\User;
 use App\Observers\AuditTrailObserver;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Carbon;
@@ -40,9 +41,9 @@ class AppServiceProvider extends ServiceProvider
         // Auto-inject sidebar template based on authenticated user role
         View::composer('*', function ($view) {
             if (! $view->offsetExists('sidebarTemplate')) {
-                /** @var \App\Models\User|null $user */
+                /** @var User|null $user */
                 $user = Auth::user();
-                if ($user instanceof \App\Models\User) {
+                if ($user instanceof User) {
                     $template = match (true) {
                         $user->isSuperAdmin() => 'admin.partials.sidebar',
                         $user->isStaffAdminDesa() => 'desa.partials.sidebar',

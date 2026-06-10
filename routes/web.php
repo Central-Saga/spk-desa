@@ -82,8 +82,8 @@ Route::middleware('auth')->group(function () {
             Route::get('audit-trail/{auditTrail}', [Admin\AuditTrailController::class, 'show'])->name('audit-trail.show');
         });
 
-    // Staff Admin Desa
-    Route::middleware('role:'.RoleSlug::StaffAdminDesa->value)
+    // Staff Admin Desa (Super Admin juga bisa akses untuk isi skor)
+    Route::middleware('role:'.RoleSlug::StaffAdminDesa->value.','.RoleSlug::SuperAdmin->value)
         ->prefix('desa')
         ->name('desa.')
         ->group(function () {

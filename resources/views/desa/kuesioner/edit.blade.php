@@ -76,16 +76,27 @@
                             </div>
 
                             <div class="col-md-3">
-                                <label class="form-label small fw-medium">Skor (0-100)</label>
-                                <input type="number"
-                                       name="jawaban[{{ $idx }}][skor]"
-                                       value="{{ $skorVal }}"
-                                       step="0.01" min="0" max="100"
-                                       class="form-control @error('jawaban.'.$idx.'.skor') is-invalid @enderror"
-                                       @if ($isFinal) readonly @endif>
-                                @error("jawaban.{$idx}.skor")
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                                @if (auth()->user()->isSuperAdmin())
+                                    <label class="form-label small fw-medium">Skor (0-100)</label>
+                                    <input type="number"
+                                           name="jawaban[{{ $idx }}][skor]"
+                                           value="{{ $skorVal }}"
+                                           step="0.01" min="0" max="100"
+                                           class="form-control @error('jawaban.'.$idx.'.skor') is-invalid @enderror"
+                                           @if ($isFinal) readonly @endif>
+                                    @error("jawaban.{$idx}.skor")
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                @else
+                                    <label class="form-label small fw-medium">Skor</label>
+                                    <div class="form-control-plaintext text-secondary small py-1">
+                                        @if ($jawaban?->skor !== null)
+                                            {{ number_format($jawaban->skor, 2) }}
+                                        @else
+                                            <em class="text-muted">Diisi oleh Super Admin</em>
+                                        @endif
+                                    </div>
+                                @endif
                             </div>
 
                             <div class="col-md-2">

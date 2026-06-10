@@ -38,7 +38,6 @@ class VerifikasiKuesionerController extends Controller
                 'jawaban_kuesioner.kuesioner_id',
                 'jawaban_kuesioner.periode_id',
                 'jawaban_kuesioner.jawaban',
-                'jawaban_kuesioner.status_jawaban',
                 'jawaban_kuesioner.skor',
                 'jawaban_kuesioner.status',
             )

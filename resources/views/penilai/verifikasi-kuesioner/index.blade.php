@@ -49,7 +49,6 @@
                             <th>Desa</th>
                             <th>Pertanyaan</th>
                             <th>Jawaban</th>
-                            <th>Status</th>
                             <th>Status Verifikasi</th>
                             <th>Catatan</th>
                             <th class="text-end pe-3" style="width: 140px;">Aksi</th>
@@ -70,15 +69,6 @@
                                 </td>
                                 <td>
                                     <div class="small">{{ $row->jawaban ?? '-' }}</div>
-                                </td>
-                                <td>
-                                    @if ($row->status_jawaban === 'iya')
-                                        <span class="badge bg-success-subtle text-success">Iya</span>
-                                    @elseif ($row->status_jawaban === 'tidak')
-                                        <span class="badge bg-danger-subtle text-danger">Tidak</span>
-                                    @else
-                                        <span class="text-secondary">-</span>
-                                    @endif
                                 </td>
                                 <td>
                                     @php
@@ -122,7 +112,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="8" class="text-center text-secondary py-4">
+                                <td colspan="7" class="text-center text-secondary py-4">
                                     <i class="bi bi-inbox fs-3 d-block mb-2"></i>
                                     Belum ada data verifikasi kuesioner.
                                 </td>

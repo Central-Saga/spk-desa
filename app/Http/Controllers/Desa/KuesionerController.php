@@ -7,6 +7,7 @@ use App\Enums\StatusJawaban;
 use App\Enums\StatusPeriode;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Desa\SimpanJawabanKuesionerRequest;
+use App\Models\Desa;
 use App\Models\JawabanKuesioner;
 use App\Models\Kuesioner;
 use App\Models\PeriodePenilaian;
@@ -15,17 +16,23 @@ use App\Services\AuditTrailService;
 use App\Services\JawabanKuesionerService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class KuesionerController extends Controller
 {
-    public function edit(): View|RedirectResponse
+    public function edit(Request $request): View|RedirectResponse
     {
         /** @var User $user */
         $user = Auth::user();
-        $desa = $user->desa;
 
-        abort_unless($desa, 403, 'Akun Anda belum terhubung ke desa manapun.');
+        // Super Admin bisa pilih desa via query parameter, Staff Admin Desa otomatis ke desanya
+        if ($user->isSuperAdmin()) {
+            $desa = Desa::query()->findOrFail($request->integer('desa_id'));
+        } else {
+            $desa = $user->desa;
+            abort_unless($desa, 403, 'Akun Anda belum terhubung ke desa manapun.');
+        }
 
         $periode = PeriodePenilaian::query()
             ->where('status', StatusPeriode::Aktif->value)
@@ -34,7 +41,7 @@ class KuesionerController extends Controller
 
         if (! $periode) {
             return redirect()
-                ->route('desa.dashboard')
+                ->route($user->isSuperAdmin() ? 'admin.dashboard' : 'desa.dashboard')
                 ->with('error', 'Belum ada periode penilaian yang aktif. Hubungi Super Admin.');
         }
 
@@ -80,9 +87,14 @@ class KuesionerController extends Controller
     ): RedirectResponse {
         /** @var User $user */
         $user = Auth::user();
-        $desa = $user->desa;
 
-        abort_unless($desa, 403);
+        // Super Admin bisa pilih desa, Staff Admin Desa terikat ke desanya
+        if ($user->isSuperAdmin()) {
+            $desa = Desa::query()->findOrFail($request->integer('desa_id'));
+        } else {
+            $desa = $user->desa;
+            abort_unless($desa, 403);
+        }
 
         $periode = PeriodePenilaian::query()->findOrFail($request->integer('periode_id'));
 
@@ -104,6 +116,16 @@ class KuesionerController extends Controller
         $finalisasi = $request->boolean('finalisasi');
         $jawabanInput = (array) $request->input('jawaban', []);
 
+        // Hanya Super Admin yang boleh mengisi skor
+        if (! $user->isSuperAdmin()) {
+            $jawabanInput = array_map(fn ($item) => [
+                'kuesioner_id' => $item['kuesioner_id'],
+                'jawaban' => $item['jawaban'] ?? null,
+                'keterangan' => $item['keterangan'] ?? null,
+                // skor di-unset agar tidak mengubah skor yang sudah ada
+            ], $jawabanInput);
+        }
+
         $service->simpan($desa, $periode, $jawabanInput, $user, $finalisasi);
 
         AuditTrailService::record(
@@ -117,7 +139,7 @@ class KuesionerController extends Controller
         );
 
         return redirect()
-            ->route('desa.kuesioner.edit')
+            ->route('desa.kuesioner.edit', $user->isSuperAdmin() ? ['desa_id' => $desa->id] : [])
             ->with('success', $finalisasi
                 ? 'Jawaban berhasil difinalisasi.'
                 : 'Draft jawaban berhasil disimpan.');
