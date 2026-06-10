@@ -50,6 +50,8 @@
                             <th>Pertanyaan</th>
                             <th>Jawaban</th>
                             <th>Status</th>
+                            <th>Status Verifikasi</th>
+                            <th>Catatan</th>
                             <th class="text-end pe-3" style="width: 140px;">Aksi</th>
                         </tr>
                     </thead>
@@ -78,6 +80,25 @@
                                         <span class="text-secondary">-</span>
                                     @endif
                                 </td>
+                                <td>
+                                    @php
+                                        $verifikasiStatus = $row->verifikasi_status ?? null;
+                                    @endphp
+                                    @if ($verifikasiStatus === 'disetujui')
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle">Disetujui</span>
+                                    @elseif ($verifikasiStatus === 'ditolak')
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Ditolak</span>
+                                    @elseif ($verifikasiStatus === 'perlu_perbaikan')
+                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle">Perlu Perbaikan</span>
+                                    @else
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Belum</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <div class="small" style="max-width: 200px;">
+                                        {{ $row->verifikasi_catatan ?? '-' }}
+                                    </div>
+                                </td>
                                 <td class="text-end pe-3">
                                     @php
                                         $jadwal = $row->desa->jadwalVisitasi
@@ -101,7 +122,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center text-secondary py-4">
+                                <td colspan="8" class="text-center text-secondary py-4">
                                     <i class="bi bi-inbox fs-3 d-block mb-2"></i>
                                     Belum ada data verifikasi kuesioner.
                                 </td>
