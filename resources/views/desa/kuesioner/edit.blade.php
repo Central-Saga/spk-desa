@@ -99,6 +99,7 @@
                                 @endif
                             </div>
 
+                            @if (auth()->user()->isSuperAdmin())
                             <div class="col-md-2">
                                 <label class="form-label small fw-medium">Keterangan</label>
                                 <input type="text"
@@ -107,6 +108,7 @@
                                        class="form-control form-control-sm"
                                        @if ($isFinal) readonly @endif>
                             </div>
+                            @endif
                         </div>
                         @php $idx++; @endphp
                     @endforeach
