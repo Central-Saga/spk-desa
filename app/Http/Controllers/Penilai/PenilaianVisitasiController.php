@@ -5,19 +5,8 @@ namespace App\Http\Controllers\Penilai;
 use App\Enums\AksiAudit;
 use App\Enums\StatusVisitasi;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Penilai\SimpanPenilaianVisitasiRequest;
+use App\Models\BuktiVisitasiGambar;
 use App\Models\IndikatorVisitasi;
-use App\Models\JadwalVisitasi;
-use App\Models\PenilaianVisitasi;
-use App\Models\User;
-use App\Services\AuditTrailService;
-use Illuminate\Contracts\View\View;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 class PenilaianVisitasiController extends Controller
 {
@@ -106,23 +95,7 @@ class PenilaianVisitasiController extends Controller
 
         DB::transaction(function () use ($items, $jadwalVisitasi, $request, $user) {
             foreach ($items as $index => $item) {
-                $penilaian = PenilaianVisitasi::query()
-                    ->where('jadwal_id', $jadwalVisitasi->id)
-                    ->where('indikator_visitasi', $item['indikator'])
-                    ->first();
-
-                $buktiGambar = $penilaian?->bukti_gambar;
-                $gambar = $request->file("penilaian.{$index}.bukti_gambar");
-
-                if ($gambar instanceof UploadedFile) {
-                    if (is_string($buktiGambar) && $buktiGambar !== '') {
-                        Storage::disk('public')->delete($buktiGambar);
-                    }
-
-                    $buktiGambar = $gambar->store('bukti-visitasi/'.$jadwalVisitasi->id, 'public');
-                }
-
-                PenilaianVisitasi::updateOrCreate(
+                $penilaian = PenilaianVisitasi::updateOrCreate(
                     [
                         'jadwal_id' => $jadwalVisitasi->id,
                         'indikator_visitasi' => $item['indikator'],
@@ -133,11 +106,39 @@ class PenilaianVisitasiController extends Controller
                         'skor' => (float) $item['skor'],
                         'bobot' => (float) $item['bobot'],
                         'keterangan' => $item['keterangan'] ?? null,
-                        'bukti_gambar' => $buktiGambar,
                         'dinilai_oleh' => $user->id,
                         'tanggal_input' => now(),
                     ]
                 );
+
+                // Hapus gambar yang ditandai (cuma yang milik penilaian ini)
+                $hapusIds = array_filter(array_map('intval', $item['hapus_gambar'] ?? []));
+                if (! empty($hapusIds)) {
+                    $gambarHapus = BuktiVisitasiGambar::query()
+                        ->whereIn('id', $hapusIds)
+                        ->where('penilaian_visitasi_id', $penilaian->id)
+                        ->get();
+
+                    foreach ($gambarHapus as $g) {
+                        Storage::disk('public')->delete($g->path);
+                        $g->delete();
+                    }
+                }
+
+                // Simpan gambar baru (array UploadedFile)
+                $files = $request->file("penilaian.{$index}.bukti_gambar");
+                $files = is_array($files) ? $files : array_filter([$files], fn ($f) => $f instanceof UploadedFile);
+
+                if (! empty($files)) {
+                    $urutanNext = ($penilaian->buktiGambar()->max('urutan') ?? 0) + 1;
+                    foreach ($files as $file) {
+                        $path = $file->store('bukti-visitasi/'.$jadwalVisitasi->id, 'public');
+                        $penilaian->buktiGambar()->create([
+                            'path' => $path,
+                            'urutan' => $urutanNext++,
+                        ]);
+                    }
+                }
             }
 
             // Otomatis tandai jadwal selesai jika belum

@@ -102,24 +102,38 @@
                                    class="form-control form-control-sm"
                                    placeholder="Opsional">
 
-                            <label class="form-label small fw-medium mt-3">Bukti Gambar</label>
+                            <label class="form-label small fw-medium mt-3">Bukti Gambar (boleh lebih dari 1)</label>
                             <input type="file"
-                                   name="penilaian[{{ $idx }}][bukti_gambar]"
+                                   name="penilaian[{{ $idx }}][bukti_gambar][]"
                                    accept="image/*"
+                                   multiple
                                    class="form-control form-control-sm @error('penilaian.'.$idx.'.bukti_gambar') is-invalid @enderror">
                             @error("penilaian.{$idx}.bukti_gambar")
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
 
-                            @if ($exist?->bukti_gambar)
-                                <div class="mt-2">
-                                    <a href="{{ asset('storage/'.$exist->bukti_gambar) }}" target="_blank" class="small text-decoration-none">
-                                        <i class="bi bi-image me-1"></i> Lihat bukti tersimpan
-                                    </a>
-                                    <img src="{{ asset('storage/'.$exist->bukti_gambar) }}"
-                                         alt="Bukti gambar {{ $item->indikator_visitasi }}"
-                                         class="img-thumbnail d-block mt-2 w-50">
+                            @if ($exist?->buktiGambar->isNotEmpty())
+                                <div class="d-flex flex-wrap gap-2 mt-2">
+                                    @foreach ($exist->buktiGambar as $g)
+                                        <div class="position-relative">
+                                            <a href="{{ asset('storage/'.$g->path) }}" target="_blank">
+                                                <img src="{{ asset('storage/'.$g->path) }}"
+                                                     alt="Bukti #{{ $g->urutan }}"
+                                                     class="img-thumbnail"
+                                                     style="width: 90px; height: 90px; object-fit: cover;">
+                                            </a>
+                                            <span class="position-absolute top-0 start-100 translate-middle badge bg-danger hapus-gambar-badge">
+                                                <input type="checkbox"
+                                                       name="penilaian[{{ $idx }}][hapus_gambar][]"
+                                                       value="{{ $g->id }}"
+                                                       class="form-check-input"
+                                                       onchange="this.closest('.badge').classList.toggle('bg-danger', this.checked); this.closest('.badge').classList.toggle('bg-secondary', !this.checked)">
+                                                <i class="bi bi-trash"></i>
+                                            </span>
+                                        </div>
+                                    @endforeach
                                 </div>
+                                <p class="text-secondary small mt-1">Centang gambar untuk dihapus saat simpan.</p>
                             @endif
                         </div>
                     </div>
