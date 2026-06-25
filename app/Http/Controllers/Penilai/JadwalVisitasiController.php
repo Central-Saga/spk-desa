@@ -48,9 +48,15 @@ class JadwalVisitasiController extends Controller
         ]);
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
-        return view('penilai.jadwal-visitasi.create', $this->formData());
+        $data = $this->formData();
+
+        if ($desaId = $request->integer('desa_id')) {
+            $data['defaultDesaId'] = $desaId;
+        }
+
+        return view('penilai.jadwal-visitasi.create', $data);
     }
 
     public function store(StoreJadwalVisitasiRequest $request): RedirectResponse

@@ -1,0 +1,82 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=dokploy-network"
+      - "traefik.http.routers.spkdesa-web.rule=Host(`spkdesa-kibali.my.id`)"
+      - "traefik.http.routers.spkdesa-web.entrypoints=web"
+      - "traefik.http.routers.spkdesa-web.middlewares=redirect-to-https@file"
+      - "traefik.http.routers.spkdesa-web.service=spkdesa-svc"
+      - "traefik.http.routers.spkdesa-websecure.rule=Host(`spkdesa-kibali.my.id`)"
+      - "traefik.http.routers.spkdesa-websecure.entrypoints=websecure"
+      - "traefik.http.routers.spkdesa-websecure.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.spkdesa-websecure.service=spkdesa-svc"
+      - "traefik.http.services.spkdesa-svc.loadbalancer.server.port=80"
+    environment:
+      - APP_NAME=SPK Desa
+      - APP_ENV=production
+      - APP_KEY=${APP_KEY}
+      - APP_DEBUG=${APP_DEBUG:-false}
+      - APP_URL=${APP_URL}
+      - LOG_CHANNEL=single
+      - LOG_LEVEL=${LOG_LEVEL:-warning}
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=${DB_DATABASE:-spk_desa}
+      - DB_USERNAME=${DB_USERNAME:-spk}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - SESSION_DRIVER=redis
+      - SESSION_DOMAIN=${SESSION_DOMAIN}
+      - SESSION_SECURE_COOKIE=${SESSION_SECURE_COOKIE:-true}
+      - CACHE_STORE=redis
+      - QUEUE_CONNECTION=database
+      - FILESYSTEM_DISK=local
+      - MAIL_MAILER=${MAIL_MAILER:-log}
+      - MAIL_HOST=${MAIL_HOST}
+      - MAIL_PORT=${MAIL_PORT:-587}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-noreply@spk-desa.baliprov.go.id}
+      - MAIL_FROM_NAME=SPK Desa KI Bali
+      - TRUSTED_PROXIES=*
+    volumes:
+      - app_storage:/var/www/html/storage
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${DB_DATABASE:-spk_desa}
+      - MYSQL_USER=${DB_USERNAME:-spk}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
+volumes:
+  mysql_data:
+  redis_data:
+  app_storage:

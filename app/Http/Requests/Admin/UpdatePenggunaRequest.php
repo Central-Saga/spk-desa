@@ -23,7 +23,9 @@ class UpdatePenggunaRequest extends FormRequest
      */
     public function rules(): array
     {
-        $userId = $this->route('pengguna')?->id;
+        $userId = is_object($this->route('pengguna'))
+            ? $this->route('pengguna')->id
+            : (int) $this->route('pengguna');
 
         return [
             'name' => ['required', 'string', 'max:150'],

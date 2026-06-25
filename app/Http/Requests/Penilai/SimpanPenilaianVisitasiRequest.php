@@ -4,6 +4,7 @@ namespace App\Http\Requests\Penilai;
 
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\File;
 
 class SimpanPenilaianVisitasiRequest extends FormRequest
 {
@@ -12,7 +13,11 @@ class SimpanPenilaianVisitasiRequest extends FormRequest
         /** @var User|null $user */
         $user = $this->user();
 
-        return $user?->can('penilaian-visitasi.create') ?? false;
+        if (! $user) {
+            return false;
+        }
+
+        return $user->isStaffPenilaian() || $user->isSuperAdmin();
     }
 
     /**
@@ -26,7 +31,10 @@ class SimpanPenilaianVisitasiRequest extends FormRequest
             'penilaian.*.bobot' => ['required', 'numeric', 'min:0', 'max:100'],
             'penilaian.*.skor' => ['required', 'numeric', 'min:0', 'max:100'],
             'penilaian.*.keterangan' => ['nullable', 'string'],
-            'penilaian.*.bukti_gambar' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
+            'penilaian.*.bukti_gambar' => ['nullable', 'array'],
+            'penilaian.*.bukti_gambar.*' => ['required', File::image()->max('2mb')],
+            'penilaian.*.hapus_gambar' => ['nullable', 'array'],
+            'penilaian.*.hapus_gambar.*' => ['integer', 'exists:bukti_visitasi_gambar,id'],
         ];
     }
 
@@ -39,9 +47,9 @@ class SimpanPenilaianVisitasiRequest extends FormRequest
             'penilaian.*.skor.required' => 'Skor wajib diisi pada setiap indikator.',
             'penilaian.*.skor.min' => 'Skor minimal 0.',
             'penilaian.*.skor.max' => 'Skor maksimal 100.',
-            'penilaian.*.bukti_gambar.image' => 'Bukti gambar harus berupa file gambar.',
-            'penilaian.*.bukti_gambar.mimes' => 'Bukti gambar harus berformat JPG, JPEG, PNG, atau WEBP.',
-            'penilaian.*.bukti_gambar.max' => 'Ukuran bukti gambar maksimal 4 MB.',
+            'penilaian.*.bukti_gambar.*.image' => 'Setiap bukti gambar harus berupa file gambar yang valid.',
+            'penilaian.*.bukti_gambar.*.max' => 'Ukuran tiap bukti gambar maksimal 2 MB.',
+            'penilaian.*.hapus_gambar.*.exists' => 'Gambar yang ditandai hapus tidak valid.',
         ];
     }
 }

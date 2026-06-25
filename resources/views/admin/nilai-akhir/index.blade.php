@@ -3,7 +3,7 @@
 @section('title', 'Hitung Nilai Akhir')
 
 @section('sidebar')
-    @include('admin.partials.sidebar')
+    @include($sidebarTemplate)
 @endsection
 
 @section('content')
@@ -148,7 +148,7 @@
                                             #{{ $row->peringkat }}
                                         @endif
                                     </td>
-                                    <td class="fw-medium">{{ $row->desa->nama }}</td>
+                                    <td class="fw-medium">{{ $row->desa?->nama ?? 'Desa tidak tersedia' }}</td>
                                     <td class="text-end">{{ number_format($row->nilai_kuesioner, 2) }}</td>
                                     <td class="text-end">{{ number_format($row->nilai_visitasi, 2) }}</td>
                                     <td class="text-end fw-semibold text-primary">{{ number_format($row->nilai_akhir, 2) }}</td>

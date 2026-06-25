@@ -22,6 +22,7 @@ class HasilPenilaianController extends Controller
 
         $query = NilaiAkhir::query()
             ->with(['desa', 'periode'])
+            ->has('desa')
             ->when($periode, fn ($q) => $q->where('periode_id', $periode->id))
             ->orderBy('peringkat');
 

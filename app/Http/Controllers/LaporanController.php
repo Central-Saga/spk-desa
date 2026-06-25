@@ -3,22 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Enums\AksiAudit;
-use App\Models\AuditTrail;
-use App\Models\JawabanKuesioner;
 use App\Models\NilaiAkhir;
-use App\Models\PenilaianVisitasi;
 use App\Models\PeriodePenilaian;
 use App\Models\User;
 use App\Services\AuditTrailService;
-use Barryvdh\DomPDF\Facade\Pdf;
+use App\Services\LaporanService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 
 class LaporanController extends Controller
 {
+    public function __construct(private LaporanService $laporanService) {}
+
     public function index(Request $request): View
     {
         /** @var User $user */
@@ -51,22 +49,7 @@ class LaporanController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        $hasil = NilaiAkhir::query()
-            ->with('desa')
-            ->where('periode_id', $periode->id)
-            ->when(
-                $user->isStaffAdminDesa() && $user->desa_id,
-                fn ($q) => $q->where('desa_id', $user->desa_id)
-            )
-            ->orderBy('peringkat')
-            ->get();
-
-        $pdf = Pdf::loadView('laporan.pdf.rekapitulasi', [
-            'periode' => $periode,
-            'hasil' => $hasil,
-            'pencetak' => $user,
-            'tanggalCetak' => now(),
-        ])->setPaper('a4', 'landscape');
+        $pdf = $this->laporanService->generateRekapitulasi($periode, $user);
 
         AuditTrailService::record(
             $user,
@@ -75,7 +58,7 @@ class LaporanController extends Controller
             $periode
         );
 
-        $filename = 'laporan-rekapitulasi-'.Str::slug($periode->nama).'-'.now()->format('Ymd-His').'.pdf';
+        $filename = LaporanService::filenameRekapitulasi($periode);
 
         return $pdf->stream($filename);
     }
@@ -89,37 +72,16 @@ class LaporanController extends Controller
             abort(403, 'Anda hanya dapat mencetak laporan desa Anda sendiri.');
         }
 
-        $nilai->load(['desa', 'periode']);
-
-        $jawaban = JawabanKuesioner::query()
-            ->where('desa_id', $nilai->desa_id)
-            ->where('periode_id', $nilai->periode_id)
-            ->with('kuesioner')
-            ->get()
-            ->sortBy(fn ($j) => $j->kuesioner?->urutan ?? 999);
-
-        $visitasi = PenilaianVisitasi::query()
-            ->where('desa_id', $nilai->desa_id)
-            ->where('periode_id', $nilai->periode_id)
-            ->orderBy('indikator_visitasi')
-            ->get();
-
-        $pdf = Pdf::loadView('laporan.pdf.per-desa', [
-            'nilai' => $nilai,
-            'jawaban' => $jawaban,
-            'visitasi' => $visitasi,
-            'pencetak' => $user,
-            'tanggalCetak' => now(),
-        ])->setPaper('a4', 'portrait');
+        $pdf = $this->laporanService->generatePerDesa($nilai, $user);
 
         AuditTrailService::record(
             $user,
             AksiAudit::Print,
-            "Mencetak laporan per desa {$nilai->desa->nama} periode {$nilai->periode->nama}",
+            'Mencetak laporan per desa '.($nilai->desa?->nama ?? 'Desa tidak tersedia')." periode {$nilai->periode->nama}",
             $nilai
         );
 
-        $filename = 'laporan-per-desa-'.Str::slug($nilai->desa->nama).'-'.Str::slug($nilai->periode->nama).'.pdf';
+        $filename = LaporanService::filenamePerDesa($nilai);
 
         return $pdf->stream($filename);
     }
@@ -134,19 +96,7 @@ class LaporanController extends Controller
         $from = $request->date('from') ?? now()->subDays(30);
         $to = $request->date('to') ?? now();
 
-        $audit = AuditTrail::query()
-            ->with('user')
-            ->whereBetween('created_at', [$from->startOfDay(), $to->endOfDay()])
-            ->orderByDesc('created_at')
-            ->get();
-
-        $pdf = Pdf::loadView('laporan.pdf.audit-trail', [
-            'audit' => $audit,
-            'from' => $from,
-            'to' => $to,
-            'pencetak' => $user,
-            'tanggalCetak' => now(),
-        ])->setPaper('a4', 'landscape');
+        $pdf = $this->laporanService->generateAuditTrail($from, $to, $user);
 
         AuditTrailService::record(
             $user,
@@ -154,7 +104,7 @@ class LaporanController extends Controller
             "Mencetak laporan audit trail {$from->format('Y-m-d')} sd {$to->format('Y-m-d')}",
         );
 
-        $filename = 'laporan-audit-trail-'.$from->format('Ymd').'-'.$to->format('Ymd').'.pdf';
+        $filename = LaporanService::filenameAuditTrail($from, $to);
 
         return $pdf->stream($filename);
     }

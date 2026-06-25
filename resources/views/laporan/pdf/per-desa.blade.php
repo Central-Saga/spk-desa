@@ -61,10 +61,10 @@
         <table class="bordered">
             <thead>
                 <tr>
+                    <th style="width: 80px;">Jawaban</th>
                     <th style="width: 50px;">Kode</th>
-                    <th>Kategori</th>
                     <th>Pertanyaan</th>
-                    <th class="text-right" style="width: 60px;">Skor</th>
+                    <th style="width: 60px;">Status</th>
                     <th class="text-right" style="width: 60px;">Bobot</th>
                     <th class="text-right" style="width: 70px;">Kontribusi</th>
                 </tr>
@@ -74,12 +74,17 @@
                     @php
                         $bobot = (float) ($j->kuesioner->bobot_indikator ?? 0);
                         $kontribusi = ((float) $j->skor * $bobot) / 100;
+                        $statusLabel = match ($j->status_jawaban) {
+                            'iya' => 'Iya',
+                            'tidak' => 'Tidak',
+                            default => '—',
+                        };
                     @endphp
                     <tr>
+                        <td class="small">{{ \Illuminate\Support\Str::limit($j->jawaban, 50) ?: '—' }}</td>
                         <td>{{ $j->kuesioner?->kode_indikator ?? '—' }}</td>
-                        <td>{{ $j->kuesioner?->kategori ?? '—' }}</td>
                         <td class="small">{{ $j->kuesioner?->pertanyaan ?? '—' }}</td>
-                        <td class="text-right">{{ number_format($j->skor, 2) }}</td>
+                        <td>{{ $statusLabel }}</td>
                         <td class="text-right">{{ number_format($bobot, 2) }}</td>
                         <td class="text-right"><strong>{{ number_format($kontribusi, 2) }}</strong></td>
                     </tr>

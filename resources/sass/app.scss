@@ -98,6 +98,12 @@ $btn-font-weight: 500;
     border-radius: 0.75rem;
     padding: 1.25rem;
     height: 100%;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+    }
 
     .stat-icon {
         width: 3rem;

@@ -21,16 +21,24 @@ class SimpanJawabanKuesionerRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        /** @var User $user */
+        $user = $this->user();
+
+        $rules = [
             'periode_id' => ['required', 'integer', 'exists:periode_penilaian,id'],
             'finalisasi' => ['nullable', 'boolean'],
 
             'jawaban' => ['required', 'array', 'min:1'],
             'jawaban.*.kuesioner_id' => ['required', 'integer', 'exists:kuesioner,id'],
             'jawaban.*.jawaban' => ['nullable', 'string'],
-            'jawaban.*.skor' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'jawaban.*.keterangan' => ['nullable', 'string'],
         ];
+
+        if ($user->isSuperAdmin()) {
+            $rules['jawaban.*.skor'] = ['nullable', 'numeric', 'min:0', 'max:100'];
+        }
+
+        return $rules;
     }
 
     public function withValidator(Validator $validator): void
@@ -40,14 +48,19 @@ class SimpanJawabanKuesionerRequest extends FormRequest
                 return;
             }
 
-            $jawaban = (array) $this->input('jawaban', []);
+            /** @var User $user */
+            $user = $this->user();
 
-            foreach ($jawaban as $idx => $item) {
-                if (! isset($item['skor']) || $item['skor'] === '' || $item['skor'] === null) {
-                    $v->errors()->add(
-                        "jawaban.{$idx}.skor",
-                        'Saat finalisasi, semua indikator wajib memiliki skor.'
-                    );
+            if ($user->isSuperAdmin()) {
+                $jawaban = (array) $this->input('jawaban', []);
+
+                foreach ($jawaban as $idx => $item) {
+                    if (! isset($item['skor']) || $item['skor'] === '' || $item['skor'] === null) {
+                        $v->errors()->add(
+                            "jawaban.{$idx}.skor",
+                            'Saat finalisasi, semua indikator wajib memiliki skor.'
+                        );
+                    }
                 }
             }
         });

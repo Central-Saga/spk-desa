@@ -23,7 +23,6 @@ class KuesionerController extends Controller
         $kuesioner = $periode
             ? Kuesioner::query()
                 ->where('periode_id', $periode->id)
-                ->orderBy('kategori')
                 ->orderBy('urutan')
                 ->get()
             : collect();

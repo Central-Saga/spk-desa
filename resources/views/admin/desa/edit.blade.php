@@ -3,7 +3,7 @@
 @section('title', 'Ubah Desa')
 
 @section('sidebar')
-    @include('admin.partials.sidebar')
+    @include($sidebarTemplate)
 @endsection
 
 @section('content')

@@ -33,13 +33,17 @@ final class JawabanKuesionerService
                         'kuesioner_id' => (int) $item['kuesioner_id'],
                         'periode_id' => $periode->id,
                     ],
-                    [
+                    collect([
                         'jawaban' => $item['jawaban'] ?? null,
-                        'skor' => isset($item['skor']) ? (float) $item['skor'] : 0,
                         'keterangan' => $item['keterangan'] ?? null,
                         'status' => $finalisasi ? StatusJawaban::Final : StatusJawaban::Draft,
                         'diisi_oleh' => $pengisi->id,
-                    ]
+                    ])
+                        ->when(
+                            array_key_exists('skor', $item),
+                            fn ($c) => $c->put('skor', (float) $item['skor'])
+                        )
+                        ->all()
                 ))
                 ->values();
         });

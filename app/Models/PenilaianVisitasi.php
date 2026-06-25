@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PenilaianVisitasi extends Model
 {
@@ -52,5 +53,12 @@ class PenilaianVisitasi extends Model
     public function penilai(): BelongsTo
     {
         return $this->belongsTo(User::class, 'dinilai_oleh');
+    }
+
+    /** @return HasMany\u003cBuktiVisitasiGambar> */
+    public function buktiGambar(): HasMany
+    {
+        return $this->hasMany(BuktiVisitasiGambar::class, 'penilaian_visitasi_id')
+            ->orderBy('urutan');
     }
 }

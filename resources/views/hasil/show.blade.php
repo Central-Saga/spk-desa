@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Detail Hasil Penilaian - ' . $nilai->desa->nama)
+@section('title', 'Detail Hasil Penilaian - ' . ($nilai->desa?->nama ?? 'Desa tidak tersedia'))
 
 @section('sidebar')
     @include($sidebarTemplate)
@@ -9,7 +9,7 @@
 @section('content')
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
         <div>
-            <h1 class="h4 fw-semibold mb-1">Detail Hasil &mdash; {{ $nilai->desa->nama }}</h1>
+            <h1 class="h4 fw-semibold mb-1">Detail Hasil &mdash; {{ $nilai->desa?->nama ?? 'Desa tidak tersedia' }}</h1>
             <p class="text-secondary mb-0 small">
                 Periode: <strong>{{ $nilai->periode->nama }}</strong>
                 &middot; Dihitung {{ $nilai->dihitung_pada?->translatedFormat('d M Y H:i') ?? '—' }}
@@ -64,10 +64,10 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th class="ps-3">Kategori</th>
+                            <th class="ps-3">Jawaban</th>
                             <th>Indikator</th>
                             <th>Pertanyaan</th>
-                            <th class="text-end">Skor</th>
+                            <th>Status</th>
                             <th class="text-end">Bobot</th>
                             <th class="text-end pe-3">Skor × Bobot / 100</th>
                         </tr>
@@ -79,16 +79,22 @@
                                 $kontribusi = ((float) $j->skor * $bobot) / 100;
                             @endphp
                             <tr>
-                                <td class="ps-3">
-                                    <span class="badge bg-secondary-subtle text-secondary">
-                                        {{ $j->kuesioner?->kategori ?? '—' }}
-                                    </span>
+                                <td class="ps-3 small" style="max-width: 240px;">
+                                    {{ \Illuminate\Support\Str::limit($j->jawaban, 70) ?: '—' }}
                                 </td>
                                 <td><code class="small">{{ $j->kuesioner?->kode_indikator ?? '—' }}</code></td>
                                 <td class="small" style="max-width: 360px;">
                                     {{ \Illuminate\Support\Str::limit($j->kuesioner?->pertanyaan ?? '', 90) }}
                                 </td>
-                                <td class="text-end">{{ number_format($j->skor, 2) }}</td>
+                                <td>
+                                    @if ($j->status_jawaban === 'iya')
+                                        <span class="badge bg-success-subtle text-success">Iya</span>
+                                    @elseif ($j->status_jawaban === 'tidak')
+                                        <span class="badge bg-danger-subtle text-danger">Tidak</span>
+                                    @else
+                                        <span class="text-secondary">—</span>
+                                    @endif
+                                </td>
                                 <td class="text-end text-secondary">{{ number_format($bobot, 2) }}</td>
                                 <td class="text-end pe-3 fw-medium text-primary">{{ number_format($kontribusi, 2) }}</td>
                             </tr>

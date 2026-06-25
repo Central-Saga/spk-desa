@@ -3,7 +3,7 @@
 @section('title', 'Dashboard Pimpinan')
 
 @section('sidebar')
-    @include('pimpinan.partials.sidebar')
+    @include($sidebarTemplate)
 @endsection
 
 @section('content')

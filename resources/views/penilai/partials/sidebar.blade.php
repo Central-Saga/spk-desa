@@ -17,6 +17,10 @@
    class="nav-link {{ str_starts_with($current ?? '', 'penilai.penilaian-visitasi') ? 'active' : '' }}">
     <i class="bi bi-clipboard-check"></i> Input Penilaian
 </a>
+<a href="{{ route('penilai.verifikasi-kuesioner.index') }}"
+   class="nav-link {{ str_starts_with($current ?? '', 'penilai.verifikasi-kuesioner') ? 'active' : '' }}">
+    <i class="bi bi-check-square"></i> Verifikasi Kuesioner
+</a>
 
 <div class="nav-section">Hasil</div>
 <a href="{{ route('hasil.index') }}"

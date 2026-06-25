@@ -7,7 +7,7 @@
     $petugasOptions = $petugasList->mapWithKeys(fn ($u) => [$u->id => $u->name])->all();
     $statusOptions = collect($statuses)->mapWithKeys(fn ($s) => [$s->value => $s->label()])->all();
 
-    $currentDesa = old('desa_id', $jadwal?->desa_id);
+    $currentDesa = old('desa_id', $jadwal?->desa_id ?? ($defaultDesaId ?? null));
     $currentPeriode = old('periode_id', $jadwal?->periode_id);
     $currentPetugas = old('petugas_id', $jadwal?->petugas_id);
     $currentStatus = old('status', $jadwal?->status?->value ?? 'terjadwal');

@@ -16,7 +16,9 @@ Route::redirect('/', '/login');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [LoginController::class, 'authenticate'])->name('login.attempt');
+    Route::post('/login', [LoginController::class, 'authenticate'])
+        ->middleware('throttle:5,1')
+        ->name('login.attempt');
 });
 
 Route::middleware('auth')->group(function () {
@@ -69,6 +71,10 @@ Route::middleware('auth')->group(function () {
                 ->except(['show'])
                 ->parameters(['kuesioner' => 'kuesioner']);
 
+            Route::resource('visitasi', Admin\VisitasiController::class)
+                ->except(['show'])
+                ->parameters(['visitasi' => 'visitasi']);
+
             Route::get('nilai-akhir', [Admin\NilaiAkhirController::class, 'index'])->name('nilai-akhir.index');
             Route::post('nilai-akhir/{periode}/hitung', [Admin\NilaiAkhirController::class, 'hitung'])->name('nilai-akhir.hitung');
 
@@ -76,8 +82,8 @@ Route::middleware('auth')->group(function () {
             Route::get('audit-trail/{auditTrail}', [Admin\AuditTrailController::class, 'show'])->name('audit-trail.show');
         });
 
-    // Staff Admin Desa
-    Route::middleware('role:'.RoleSlug::StaffAdminDesa->value)
+    // Staff Admin Desa (Super Admin juga bisa akses untuk isi skor)
+    Route::middleware('role:'.RoleSlug::StaffAdminDesa->value.','.RoleSlug::SuperAdmin->value)
         ->prefix('desa')
         ->name('desa.')
         ->group(function () {
@@ -104,6 +110,13 @@ Route::middleware('auth')->group(function () {
                 ->name('penilaian-visitasi.edit');
             Route::put('penilaian-visitasi/{jadwalVisitasi}', [Penilai\PenilaianVisitasiController::class, 'update'])
                 ->name('penilaian-visitasi.update');
+
+            Route::get('verifikasi-kuesioner', [Penilai\VerifikasiKuesionerController::class, 'index'])
+                ->name('verifikasi-kuesioner.index');
+            Route::get('verifikasi-kuesioner/{jadwalVisitasi}', [Penilai\VerifikasiKuesionerController::class, 'edit'])
+                ->name('verifikasi-kuesioner.edit');
+            Route::put('verifikasi-kuesioner/{jadwalVisitasi}', [Penilai\VerifikasiKuesionerController::class, 'update'])
+                ->name('verifikasi-kuesioner.update');
         });
 
     // Pimpinan

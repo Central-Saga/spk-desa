@@ -3,7 +3,7 @@
 @section('title', 'Input Penilaian Visitasi')
 
 @section('sidebar')
-    @include('penilai.partials.sidebar')
+    @include($sidebarTemplate)
 @endsection
 
 @section('content')
@@ -54,7 +54,7 @@
                                 <td class="ps-3 small">{{ $row->tanggal_visitasi->translatedFormat('d M Y') }}</td>
                                 <td class="fw-medium">{{ $row->desa->nama }}</td>
                                 <td class="text-secondary small">{{ $row->periode->nama }}</td>
-                                <td class="text-secondary small">{{ $row->petugas->name }}</td>
+                                <td class="text-secondary small">{{ $row->petugas?->name ?? '—' }}</td>
                                 <td>
                                     <span class="badge {{ $row->status->badgeClass() }}">{{ $row->status->label() }}</span>
                                 </td>

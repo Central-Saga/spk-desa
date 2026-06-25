@@ -21,7 +21,7 @@ class UpdateDesaRequest extends FormRequest
         }
 
         // Staff Admin Desa boleh update desanya sendiri
-        $desa = $this->route('desa');
+        $desa = $this->route('desa') ?? $user->desa;
 
         return $user->can('desa.update-own') && $desa && $user->desa_id === $desa->id;
     }
