@@ -32,7 +32,7 @@
         Skor 0 sampai 100 per indikator. Sistem akan menghitung weighted sum saat perhitungan nilai akhir.
     </div>
 
-    <form method="POST" action="{{ route('penilai.penilaian-visitasi.update', $jadwal) }}" novalidate>
+    <form method="POST" action="{{ route('penilai.penilaian-visitasi.update', $jadwal) }}" enctype="multipart/form-data" novalidate>
         @csrf
         @method('PUT')
 
@@ -46,7 +46,7 @@
                     @endphp
 
                     <div class="row g-3 mb-3 pb-3 border-bottom">
-                        <div class="col-md-7">
+                        <div class="col-lg-5">
                             <div class="d-flex gap-2 align-items-start mb-1">
                                 <code class="small">{{ $item['kode'] }}</code>
                                 <span class="badge bg-secondary-subtle text-secondary">
@@ -60,7 +60,7 @@
                             <input type="hidden" name="penilaian[{{ $idx }}][bobot]" value="{{ $item['bobot'] }}">
                         </div>
 
-                        <div class="col-md-2">
+                        <div class="col-md-3 col-lg-2">
                             <label class="form-label small fw-medium">Skor (0-100) <span class="text-danger">*</span></label>
                             <input type="number"
                                    name="penilaian[{{ $idx }}][skor]"
@@ -73,13 +73,31 @@
                             @enderror
                         </div>
 
-                        <div class="col-md-3">
+                        <div class="col-md-5 col-lg-2">
                             <label class="form-label small fw-medium">Keterangan</label>
                             <input type="text"
                                    name="penilaian[{{ $idx }}][keterangan]"
                                    value="{{ $ketVal }}"
                                    class="form-control form-control-sm"
                                    placeholder="Opsional">
+                        </div>
+
+                        <div class="col-lg-3">
+                            <label class="form-label small fw-medium">Bukti Gambar</label>
+                            <input type="file"
+                                   name="penilaian[{{ $idx }}][bukti_gambar]"
+                                   accept="image/jpeg,image/png,image/webp"
+                                   class="form-control form-control-sm @error('penilaian.'.$idx.'.bukti_gambar') is-invalid @enderror">
+                            @error("penilaian.{$idx}.bukti_gambar")
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+
+                            @if ($exist?->bukti_gambar)
+                                <a href="{{ \Illuminate\Support\Facades\Storage::url($exist->bukti_gambar) }}" target="_blank" class="d-inline-flex align-items-center gap-1 small mt-2">
+                                    <i class="bi bi-image"></i>
+                                    Lihat bukti tersimpan
+                                </a>
+                            @endif
                         </div>
                     </div>
                 @endforeach

@@ -26,6 +26,7 @@ class SimpanPenilaianVisitasiRequest extends FormRequest
             'penilaian.*.bobot' => ['required', 'numeric', 'min:0', 'max:100'],
             'penilaian.*.skor' => ['required', 'numeric', 'min:0', 'max:100'],
             'penilaian.*.keterangan' => ['nullable', 'string'],
+            'penilaian.*.bukti_gambar' => ['nullable', 'file', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
         ];
     }
 
@@ -38,6 +39,9 @@ class SimpanPenilaianVisitasiRequest extends FormRequest
             'penilaian.*.skor.required' => 'Skor wajib diisi pada setiap indikator.',
             'penilaian.*.skor.min' => 'Skor minimal 0.',
             'penilaian.*.skor.max' => 'Skor maksimal 100.',
+            'penilaian.*.bukti_gambar.image' => 'Bukti gambar harus berupa file gambar.',
+            'penilaian.*.bukti_gambar.mimes' => 'Bukti gambar harus berformat JPG, JPEG, PNG, atau WEBP.',
+            'penilaian.*.bukti_gambar.max' => 'Ukuran bukti gambar maksimal 4 MB.',
         ];
     }
 }

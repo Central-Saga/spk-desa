@@ -22,6 +22,7 @@ class PenilaianVisitasi extends Model
         'keterangan',
         'dinilai_oleh',
         'tanggal_input',
+        'bukti_gambar',
     ];
 
     protected function casts(): array

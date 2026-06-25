@@ -15,6 +15,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class PenilaianVisitasiController extends Controller
 {
@@ -77,25 +78,38 @@ class PenilaianVisitasiController extends Controller
             abort(403);
         }
 
-        $items = (array) $request->input('penilaian', []);
+        $items = (array) $request->validated('penilaian', []);
 
-        DB::transaction(function () use ($items, $jadwalVisitasi, $user) {
-            foreach ($items as $item) {
-                PenilaianVisitasi::updateOrCreate(
-                    [
-                        'jadwal_id' => $jadwalVisitasi->id,
-                        'indikator_visitasi' => $item['indikator'],
-                    ],
-                    [
-                        'desa_id' => $jadwalVisitasi->desa_id,
-                        'periode_id' => $jadwalVisitasi->periode_id,
-                        'skor' => (float) $item['skor'],
-                        'bobot' => (float) $item['bobot'],
-                        'keterangan' => $item['keterangan'] ?? null,
-                        'dinilai_oleh' => $user->id,
-                        'tanggal_input' => now(),
-                    ]
-                );
+        DB::transaction(function () use ($items, $jadwalVisitasi, $request, $user) {
+            foreach ($items as $index => $item) {
+                $penilaian = PenilaianVisitasi::firstOrNew([
+                    'jadwal_id' => $jadwalVisitasi->id,
+                    'indikator_visitasi' => $item['indikator'],
+                ]);
+
+                $buktiGambar = $penilaian->bukti_gambar;
+                $uploadedBuktiGambar = $request->file("penilaian.{$index}.bukti_gambar");
+
+                if ($uploadedBuktiGambar !== null) {
+                    if ($buktiGambar !== null) {
+                        Storage::disk('public')->delete($buktiGambar);
+                    }
+
+                    $buktiGambar = $uploadedBuktiGambar->store('penilaian-visitasi', 'public');
+                }
+
+                $penilaian->fill([
+                    'desa_id' => $jadwalVisitasi->desa_id,
+                    'periode_id' => $jadwalVisitasi->periode_id,
+                    'skor' => (float) $item['skor'],
+                    'bobot' => (float) $item['bobot'],
+                    'keterangan' => $item['keterangan'] ?? null,
+                    'dinilai_oleh' => $user->id,
+                    'tanggal_input' => now(),
+                    'bukti_gambar' => $buktiGambar,
+                ]);
+
+                $penilaian->save();
             }
 
             // Otomatis tandai jadwal selesai jika belum
