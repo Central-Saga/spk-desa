@@ -48,7 +48,6 @@ class KuesionerController extends Controller
         $indikator = Kuesioner::query()
             ->where('periode_id', $periode->id)
             ->where('is_active', true)
-            ->orderBy('kategori')
             ->orderBy('urutan')
             ->get();
 

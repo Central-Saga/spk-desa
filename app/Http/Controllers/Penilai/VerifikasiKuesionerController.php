@@ -53,6 +53,8 @@ class VerifikasiKuesionerController extends Controller
                     ->on('jawaban_kuesioner.desa_id', '=', 'vk.desa_id')
                     ->on('jawaban_kuesioner.periode_id', '=', 'vk.periode_id');
             })
+            ->leftJoin('kuesioner', 'jawaban_kuesioner.kuesioner_id', '=', 'kuesioner.id')
+            ->whereNull('kuesioner.deleted_at')
             ->addSelect(
                 'jv.id as jadwal_id',
                 'jv.tanggal_visitasi',
@@ -80,10 +82,9 @@ class VerifikasiKuesionerController extends Controller
                 $query->where('vk.status_verifikasi', $status);
             }
         }
-
         $items = $query
             ->orderBy('jv.tanggal_visitasi', 'desc')
-            ->orderBy('jawaban_kuesioner.kuesioner_id')
+            ->orderBy('kuesioner.urutan')
             ->paginate(15)
             ->withQueryString();
 

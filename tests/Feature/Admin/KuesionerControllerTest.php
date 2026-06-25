@@ -109,3 +109,17 @@ it('blokir hapus indikator yang sudah punya jawaban', function () {
         ->assertRedirect()
         ->assertSessionHas('error');
 });
+
+it('menampilkan kuesioner terurut by urutan meski kategori non-alfabet', function () {
+    Kuesioner::factory()->create(['periode_id' => $this->periode->id, 'kategori' => 'Transparansi', 'kode_indikator' => 'K-TR-01', 'urutan' => 1, 'is_active' => true]);
+    Kuesioner::factory()->create(['periode_id' => $this->periode->id, 'kategori' => 'Transparansi', 'kode_indikator' => 'K-TR-02', 'urutan' => 2, 'is_active' => true]);
+    Kuesioner::factory()->create(['periode_id' => $this->periode->id, 'kategori' => 'Partisipasi', 'kode_indikator' => 'K-PA-01', 'urutan' => 3, 'is_active' => true]);
+    Kuesioner::factory()->create(['periode_id' => $this->periode->id, 'kategori' => 'Pelayanan', 'kode_indikator' => 'K-PL-01', 'urutan' => 4, 'is_active' => true]);
+    Kuesioner::factory()->create(['periode_id' => $this->periode->id, 'kategori' => 'Pelayanan', 'kode_indikator' => 'K-PL-02', 'urutan' => 5, 'is_active' => true]);
+
+    $response = $this->actingAs($this->admin)
+        ->get('/admin/kuesioner?periode='.$this->periode->id)
+        ->assertOk();
+
+    $response->assertSeeInOrder(['#1', '#2', '#3', '#4', '#5']);
+});

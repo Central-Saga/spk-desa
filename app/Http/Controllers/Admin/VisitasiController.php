@@ -43,7 +43,6 @@ class VisitasiController extends Controller
                 ->where('periode_id', $periode->id)
                 ->when($filterScope === 'global', fn ($q) => $q->whereNull('desa_id'))
                 ->when($filterScope === 'desa', fn ($q) => $q->where('desa_id', $filterDesaId))
-                ->orderBy('kategori')
                 ->orderBy('urutan')
                 ->get()
             : collect();
