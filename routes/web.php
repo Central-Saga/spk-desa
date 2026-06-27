@@ -113,9 +113,9 @@ Route::middleware('auth')->group(function () {
 
             Route::get('verifikasi-kuesioner', [Penilai\VerifikasiKuesionerController::class, 'index'])
                 ->name('verifikasi-kuesioner.index');
-            Route::get('verifikasi-kuesioner/{jadwalVisitasi}', [Penilai\VerifikasiKuesionerController::class, 'edit'])
+            Route::get('verifikasi-kuesioner/{desa}/{periode}', [Penilai\VerifikasiKuesionerController::class, 'edit'])
                 ->name('verifikasi-kuesioner.edit');
-            Route::put('verifikasi-kuesioner/{jadwalVisitasi}', [Penilai\VerifikasiKuesionerController::class, 'update'])
+            Route::put('verifikasi-kuesioner/{desa}/{periode}', [Penilai\VerifikasiKuesionerController::class, 'update'])
                 ->name('verifikasi-kuesioner.update');
         });
 

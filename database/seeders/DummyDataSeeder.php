@@ -193,7 +193,6 @@ class DummyDataSeeder extends Seeder
                 };
 
                 VerifikasiKuesioner::create([
-                    'jadwal_id' => $jadwal->id,
                     'desa_id' => $desa->id,
                     'periode_id' => $periode->id,
                     'kuesioner_id' => $kues->id,

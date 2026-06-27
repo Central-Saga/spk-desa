@@ -45,7 +45,7 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th class="ps-3">Tanggal</th>
+                            <th class="ps-3">Tgl Verifikasi</th>
                             <th>Desa</th>
                             <th>Pertanyaan</th>
                             <th>Jawaban</th>
@@ -58,8 +58,8 @@
                         @forelse ($items as $row)
                             <tr>
                                 <td class="ps-3 small">
-                                    {{ $row->tanggal_visitasi
-                                        ? \Carbon\Carbon::parse($row->tanggal_visitasi)->translatedFormat('d M Y')
+                                    {{ $row->tanggal_verifikasi
+                                        ? $row->tanggal_verifikasi->translatedFormat('d M Y')
                                         : '-' }}
                                 </td>
                                 <td class="fw-medium">{{ $row->desa->nama }}</td>
@@ -90,24 +90,11 @@
                                     </div>
                                 </td>
                                 <td class="text-end pe-3">
-                                    @php
-                                        $jadwal = $row->desa->jadwalVisitasi
-                                            ->where('periode_id', $row->periode_id)
-                                            ->first();
-                                    @endphp
-                                    @if ($jadwal)
-                                        <a href="{{ route('penilai.verifikasi-kuesioner.edit', $jadwal) }}"
-                                           class="btn btn-sm btn-primary">
-                                            <i class="bi bi-check-square me-1"></i>
-                                            Verifikasi
-                                        </a>
-                                    @else
-                                        <a href="{{ route('penilai.jadwal-visitasi.create', ['desa_id' => $row->desa_id]) }}"
-                                           class="btn btn-sm btn-outline-warning">
-                                            <i class="bi bi-calendar-plus me-1"></i>
-                                            Jadwalkan Dulu
-                                        </a>
-                                    @endif
+                                    <a href="{{ route('penilai.verifikasi-kuesioner.edit', [$row->desa_id, $row->periode_id]) }}"
+                                       class="btn btn-sm btn-primary">
+                                        <i class="bi bi-check-square me-1"></i>
+                                        Verifikasi
+                                    </a>
                                 </td>
                             </tr>
                         @empty

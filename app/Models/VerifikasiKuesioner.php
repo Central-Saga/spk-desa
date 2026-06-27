@@ -10,7 +10,6 @@ class VerifikasiKuesioner extends Model
     protected $table = 'verifikasi_kuesioner';
 
     protected $fillable = [
-        'jadwal_id',
         'desa_id',
         'periode_id',
         'kuesioner_id',
@@ -25,11 +24,6 @@ class VerifikasiKuesioner extends Model
         return [
             'tanggal_verifikasi' => 'datetime',
         ];
-    }
-
-    public function jadwal(): BelongsTo
-    {
-        return $this->belongsTo(JadwalVisitasi::class, 'jadwal_id');
     }
 
     public function desa(): BelongsTo
