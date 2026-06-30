@@ -59,7 +59,7 @@
                             <tr>
                                 <td class="ps-3 small">
                                     {{ $row->tanggal_verifikasi
-                                        ? $row->tanggal_verifikasi->translatedFormat('d M Y')
+                                        ? \Illuminate\Support\Carbon::parse($row->tanggal_verifikasi)->translatedFormat('d M Y')
                                         : '-' }}
                                 </td>
                                 <td class="fw-medium">{{ $row->desa->nama }}</td>
