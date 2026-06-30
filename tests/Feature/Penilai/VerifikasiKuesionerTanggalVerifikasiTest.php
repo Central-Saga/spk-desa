@@ -44,13 +44,43 @@ it('menampilkan tanggal verifikasi yang sudah ada dalam format d M Y', function 
     $this->actingAs($this->penilai)
         ->get('/penilai/verifikasi-kuesioner')
         ->assertOk()
-        ->assertSee('30 Jun 2026');
+        ->assertSee('30 Jun 2026')
+        ->assertSee('Selesai');
 });
 
 it('menampilkan tanda minus saat belum ada verifikasi', function () {
     $response = $this->actingAs($this->penilai)
         ->get('/penilai/verifikasi-kuesioner')
-        ->assertOk();
+        ->assertOk()
+        ->assertSee('Belum');
 
     expect($response->getContent())->toContain('-');
+});
+
+it('badge Sebagian muncul saat hanya sebagian pertanyaan diverifikasi', function () {
+    $kuesioner2 = Kuesioner::factory()->create([
+        'periode_id' => $this->periode->id,
+        'bobot_indikator' => 25,
+        'urutan' => 2,
+    ]);
+    JawabanKuesioner::factory()->final()->create([
+        'desa_id' => $this->desa->id,
+        'kuesioner_id' => $kuesioner2->id,
+        'periode_id' => $this->periode->id,
+        'diisi_oleh' => User::factory()->staffAdminDesa()->create()->id,
+    ]);
+
+    VerifikasiKuesioner::create([
+        'desa_id' => $this->desa->id,
+        'periode_id' => $this->periode->id,
+        'kuesioner_id' => $this->kuesioner->id,
+        'diverifikasi_oleh' => $this->penilai->id,
+        'status_verifikasi' => 'disetujui',
+        'tanggal_verifikasi' => '2026-06-30 14:30:00',
+    ]);
+
+    $this->actingAs($this->penilai)
+        ->get('/penilai/verifikasi-kuesioner')
+        ->assertOk()
+        ->assertSee('Sebagian (1/2)');
 });

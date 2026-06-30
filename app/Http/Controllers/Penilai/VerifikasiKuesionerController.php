@@ -15,16 +15,24 @@ use App\Services\AuditTrailService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class VerifikasiKuesionerController extends Controller
 {
     /** @var array<int, array{value: string, label: string}> */
-    private const STATUS_OPTIONS = [
+    private const STATUS_VERIFIKASI_OPTIONS = [
         ['value' => 'disetujui', 'label' => 'Disetujui'],
         ['value' => 'ditolak', 'label' => 'Ditolak'],
         ['value' => 'perlu_perbaikan', 'label' => 'Perlu Perbaikan'],
+    ];
+
+    /** @var array<int, array{value: string, label: string}> */
+    private const STATUS_RINGKASAN_OPTIONS = [
+        ['value' => 'belum', 'label' => 'Belum Diverifikasi'],
+        ['value' => 'sebagian', 'label' => 'Sebagian'],
+        ['value' => 'selesai', 'label' => 'Selesai'],
     ];
 
     public function index(Request $request): View
@@ -32,55 +40,63 @@ class VerifikasiKuesionerController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        $query = JawabanKuesioner::query()
-            ->select(
-                'jawaban_kuesioner.id',
-                'jawaban_kuesioner.desa_id',
-                'jawaban_kuesioner.kuesioner_id',
-                'jawaban_kuesioner.periode_id',
-                'jawaban_kuesioner.jawaban',
-                'jawaban_kuesioner.skor',
-                'jawaban_kuesioner.status',
-            )
-            ->with(['desa', 'kuesioner', 'periode'])
-            ->whereHas('periode', fn ($q) => $q->where('status', 'aktif'))
-            ->where('jawaban_kuesioner.status', 'final')
-            ->leftJoin('verifikasi_kuesioner as vk', function ($join) {
-                $join->on('jawaban_kuesioner.kuesioner_id', '=', 'vk.kuesioner_id')
-                    ->on('jawaban_kuesioner.desa_id', '=', 'vk.desa_id')
-                    ->on('jawaban_kuesioner.periode_id', '=', 'vk.periode_id');
-            })
-            ->leftJoin('kuesioner', 'jawaban_kuesioner.kuesioner_id', '=', 'kuesioner.id')
-            ->whereNull('kuesioner.deleted_at')
-            ->addSelect(
-                'vk.status_verifikasi as verifikasi_status',
-                'vk.catatan as verifikasi_catatan',
-                'vk.id as verifikasi_id',
-                'vk.tanggal_verifikasi',
-            );
-
         // Verifikasi kuesioner tidak terikat petugas jadwal; seluruh staff penilaian
         // dan super admin bisa melihat/mengverifikasi jawaban final desa.
         if (! $user->isSuperAdmin() && ! $user->isStaffPenilaian()) {
             abort(403, 'Anda tidak memiliki hak akses untuk halaman ini.');
         }
 
-        if ($status = $request->string('status')->trim()->toString()) {
-            if ($status === 'belum') {
-                $query->whereNull('vk.status_verifikasi');
-            } else {
-                $query->where('vk.status_verifikasi', $status);
-            }
-        }
+        $periodeAktifIds = PeriodePenilaian::query()
+            ->where('status', 'aktif')
+            ->pluck('id');
 
-        $items = $query
-            ->orderBy('kuesioner.urutan')
-            ->paginate(15)
-            ->withQueryString();
+        if ($periodeAktifIds->isEmpty()) {
+            $items = new LengthAwarePaginator([], 0, 15);
+            $desaMap = collect();
+        } else {
+            $query = JawabanKuesioner::query()
+                ->select('jawaban_kuesioner.desa_id')
+                ->selectRaw('MAX(jawaban_kuesioner.periode_id) as periode_id')
+                ->selectRaw('COUNT(DISTINCT jawaban_kuesioner.kuesioner_id) as total_pertanyaan')
+                ->leftJoin('verifikasi_kuesioner as vk', function ($join) {
+                    $join->on('jawaban_kuesioner.kuesioner_id', '=', 'vk.kuesioner_id')
+                        ->on('jawaban_kuesioner.desa_id', '=', 'vk.desa_id')
+                        ->on('jawaban_kuesioner.periode_id', '=', 'vk.periode_id');
+                })
+                ->selectRaw('COUNT(DISTINCT vk.id) as total_diverifikasi')
+                ->selectRaw('MAX(vk.tanggal_verifikasi) as tanggal_verifikasi')
+                ->whereIn('jawaban_kuesioner.periode_id', $periodeAktifIds)
+                ->where('jawaban_kuesioner.status', 'final')
+                ->leftJoin('kuesioner', 'jawaban_kuesioner.kuesioner_id', '=', 'kuesioner.id')
+                ->whereNull('kuesioner.deleted_at')
+                ->groupBy('jawaban_kuesioner.desa_id');
+
+            if ($status = $request->string('status')->trim()->toString()) {
+                $query->havingRaw(match ($status) {
+                    'belum' => 'COUNT(DISTINCT vk.id) = 0',
+                    'sebagian' => 'COUNT(DISTINCT vk.id) >= 1 AND COUNT(DISTINCT vk.id) < COUNT(DISTINCT jawaban_kuesioner.kuesioner_id)',
+                    'selesai' => 'COUNT(DISTINCT vk.id) >= COUNT(DISTINCT jawaban_kuesioner.kuesioner_id)',
+                    default => '1=1',
+                });
+            }
+
+            $items = $query
+                ->orderBy('tanggal_verifikasi', 'desc')
+                ->paginate(15)
+                ->withQueryString();
+
+            $desaMap = $items->isEmpty()
+                ? collect()
+                : Desa::query()
+                    ->whereIn('id', $items->pluck('desa_id'))
+                    ->get()
+                    ->keyBy('id');
+        }
 
         return view('penilai.verifikasi-kuesioner.index', [
             'items' => $items,
-            'statusOptions' => self::STATUS_OPTIONS,
+            'desaMap' => $desaMap,
+            'statusOptions' => self::STATUS_RINGKASAN_OPTIONS,
             'filters' => ['status' => $request->input('status')],
         ]);
     }
@@ -121,7 +137,7 @@ class VerifikasiKuesionerController extends Controller
             'jawabanDesa' => $jawabanDesa,
             'verifikasiExisting' => $verifikasiExisting,
             'totalBobot' => $totalBobot,
-            'statusOptions' => self::STATUS_OPTIONS,
+            'statusOptions' => self::STATUS_VERIFIKASI_OPTIONS,
         ]);
     }
 

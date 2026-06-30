@@ -36,8 +36,7 @@ it('Staff Penilaian dapat lihat list jawaban kuesioner final di periode aktif', 
     $this->actingAs($this->penilai)
         ->get('/penilai/verifikasi-kuesioner')
         ->assertOk()
-        ->assertSee($this->desa->nama)
-        ->assertSee($this->kuesioner->pertanyaan);
+        ->assertSee($this->desa->nama);
 });
 
 it('Super Admin dapat lihat list verifikasi kuesioner', function () {

@@ -14,7 +14,7 @@
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
         <div>
             <h1 class="h4 fw-semibold mb-1">Verifikasi Kuesioner</h1>
-            <p class="text-secondary mb-0 small">Verifikasi jawaban kuesioner desa berdasarkan pertanyaan dan status jawaban.</p>
+            <p class="text-secondary mb-0 small">Daftar desa dengan jawaban kuesioner final periode aktif. Klik Verifikasi untuk meninjau pertanyaan dan jawaban tiap desa.</p>
         </div>
     </div>
 
@@ -24,7 +24,6 @@
                 <div class="col-md-9">
                     <select name="status" class="form-select form-select-sm">
                         <option value="">Semua Status</option>
-                        <option value="belum" @selected($filters['status'] === 'belum')>Belum Diverifikasi</option>
                         @foreach ($statusOptions as $opt)
                             <option value="{{ $opt['value'] }}" @selected($filters['status'] === $opt['value'])>
                                 {{ $opt['label'] }}
@@ -47,47 +46,41 @@
                         <tr>
                             <th class="ps-3">Tgl Verifikasi</th>
                             <th>Desa</th>
-                            <th>Pertanyaan</th>
-                            <th>Jawaban</th>
+                            <th>Wilayah</th>
                             <th>Status Verifikasi</th>
-                            <th>Catatan</th>
                             <th class="text-end pe-3" style="width: 140px;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($items as $row)
+                            @php
+                                $desa = $desaMap->get($row->desa_id);
+                                $totalPertanyaan = (int) $row->total_pertanyaan;
+                                $totalDiverifikasi = (int) $row->total_diverifikasi;
+                                $verifikasiStatus = $totalDiverifikasi === 0
+                                    ? 'belum'
+                                    : ($totalDiverifikasi >= $totalPertanyaan ? 'selesai' : 'sebagian');
+                            @endphp
                             <tr>
                                 <td class="ps-3 small">
                                     {{ $row->tanggal_verifikasi
                                         ? \Illuminate\Support\Carbon::parse($row->tanggal_verifikasi)->translatedFormat('d M Y')
                                         : '-' }}
                                 </td>
-                                <td class="fw-medium">{{ $row->desa->nama }}</td>
+                                <td class="fw-medium">{{ $desa?->nama ?? '-' }}</td>
                                 <td>
-                                    <div class="small fw-medium">{{ $row->kuesioner->pertanyaan }}</div>
-                                    <code class="small text-secondary">{{ $row->kuesioner->kode_indikator }}</code>
-                                </td>
-                                <td>
-                                    <div class="small">{{ $row->jawaban ?? '-' }}</div>
-                                </td>
-                                <td>
-                                    @php
-                                        $verifikasiStatus = $row->verifikasi_status ?? null;
-                                    @endphp
-                                    @if ($verifikasiStatus === 'disetujui')
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle">Disetujui</span>
-                                    @elseif ($verifikasiStatus === 'ditolak')
-                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Ditolak</span>
-                                    @elseif ($verifikasiStatus === 'perlu_perbaikan')
-                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle">Perlu Perbaikan</span>
-                                    @else
-                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Belum</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <div class="small" style="max-width: 200px;">
-                                        {{ $row->verifikasi_catatan ?? '-' }}
+                                    <div class="small text-secondary">
+                                        {{ $desa?->kecamatan ?? '-' }}, {{ $desa?->kabupaten ?? '-' }}
                                     </div>
+                                </td>
+                                <td>
+                                    @if ($verifikasiStatus === 'belum')
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Belum</span>
+                                    @elseif ($verifikasiStatus === 'sebagian')
+                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle">Sebagian ({{ $totalDiverifikasi }}/{{ $totalPertanyaan }})</span>
+                                    @else
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle">Selesai</span>
+                                    @endif
                                 </td>
                                 <td class="text-end pe-3">
                                     <a href="{{ route('penilai.verifikasi-kuesioner.edit', [$row->desa_id, $row->periode_id]) }}"
@@ -99,7 +92,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center text-secondary py-4">
+                                <td colspan="5" class="text-center text-secondary py-4">
                                     <i class="bi bi-inbox fs-3 d-block mb-2"></i>
                                     Belum ada data verifikasi kuesioner.
                                 </td>
