@@ -1,8 +1,6 @@
 services:
   app:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
+    image: ghcr.io/central-saga/spk-desa:latest
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
