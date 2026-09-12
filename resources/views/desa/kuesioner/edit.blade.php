@@ -33,6 +33,9 @@
         @csrf
         @method('PUT')
         <input type="hidden" name="periode_id" value="{{ $periode->id }}">
+        @if (auth()->user()->isSuperAdmin())
+            <input type="hidden" name="desa_id" value="{{ $desa->id }}">
+        @endif
 
         @php $idx = 0; @endphp
 

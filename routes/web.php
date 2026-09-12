@@ -78,6 +78,8 @@ Route::middleware('auth')->group(function () {
             Route::get('nilai-akhir', [Admin\NilaiAkhirController::class, 'index'])->name('nilai-akhir.index');
             Route::post('nilai-akhir/{periode}/hitung', [Admin\NilaiAkhirController::class, 'hitung'])->name('nilai-akhir.hitung');
 
+            Route::get('input-skor', [Admin\InputSkorKuesionerController::class, 'index'])->name('input-skor.index');
+
             Route::get('audit-trail', [Admin\AuditTrailController::class, 'index'])->name('audit-trail.index');
             Route::get('audit-trail/{auditTrail}', [Admin\AuditTrailController::class, 'show'])->name('audit-trail.show');
         });

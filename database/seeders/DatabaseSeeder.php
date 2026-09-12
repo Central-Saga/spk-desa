@@ -10,9 +10,8 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             RolePermissionSeeder::class,
-            DesaSeeder::class,
-            UserSeeder::class,
-            DummyDataSeeder::class,
+            MonevDesa2026Seeder::class,
+            CompleteDataSpkDesaSeeder::class,
         ]);
     }
 }
