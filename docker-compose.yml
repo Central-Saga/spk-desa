@@ -1,6 +1,6 @@
 services:
   app:
-    image: ghcr.io/central-saga/spk-desa:latest
+    image: ghcr.io/central-saga/spk-desa-app:latest
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
