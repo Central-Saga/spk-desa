@@ -227,8 +227,8 @@ class CompleteDataSpkDesaSeeder extends Seeder
                         'jawaban' => 'Telah diumumkan dan tersedia di portal layanan informasi serta kantor desa.',
                         'status' => $hasScore ? StatusJawaban::Final->value : StatusJawaban::Draft->value,
                         'status_jawaban' => 'iya',
-                        'skor' => $hasScore ? $cfg['base_skor_kuesioner'] : null,
-                        'keterangan' => $hasScore ? 'Terverifikasi lengkap' : null,
+                        'skor' => $hasScore ? $cfg['base_skor_kuesioner'] : 0,
+                        'keterangan' => $hasScore ? 'Terverifikasi lengkap' : 'Belum dinilai',
                         'diisi_oleh' => $userDesa->id,
                     ]
                 );
