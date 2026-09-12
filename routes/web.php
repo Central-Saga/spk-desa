@@ -78,6 +78,8 @@ Route::middleware('auth')->group(function () {
             Route::get('nilai-akhir', [Admin\NilaiAkhirController::class, 'index'])->name('nilai-akhir.index');
             Route::post('nilai-akhir/{periode}/hitung', [Admin\NilaiAkhirController::class, 'hitung'])->name('nilai-akhir.hitung');
 
+            Route::get('input-skor', [Admin\InputSkorKuesionerController::class, 'index'])->name('input-skor.index');
+
             Route::get('audit-trail', [Admin\AuditTrailController::class, 'index'])->name('audit-trail.index');
             Route::get('audit-trail/{auditTrail}', [Admin\AuditTrailController::class, 'show'])->name('audit-trail.show');
         });
@@ -113,9 +115,9 @@ Route::middleware('auth')->group(function () {
 
             Route::get('verifikasi-kuesioner', [Penilai\VerifikasiKuesionerController::class, 'index'])
                 ->name('verifikasi-kuesioner.index');
-            Route::get('verifikasi-kuesioner/{jadwalVisitasi}', [Penilai\VerifikasiKuesionerController::class, 'edit'])
+            Route::get('verifikasi-kuesioner/{desa}/{periode}', [Penilai\VerifikasiKuesionerController::class, 'edit'])
                 ->name('verifikasi-kuesioner.edit');
-            Route::put('verifikasi-kuesioner/{jadwalVisitasi}', [Penilai\VerifikasiKuesionerController::class, 'update'])
+            Route::put('verifikasi-kuesioner/{desa}/{periode}', [Penilai\VerifikasiKuesionerController::class, 'update'])
                 ->name('verifikasi-kuesioner.update');
         });
 

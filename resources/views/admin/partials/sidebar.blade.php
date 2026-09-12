@@ -38,6 +38,10 @@
    class="nav-link {{ str_starts_with($current ?? '', 'penilai.penilaian-visitasi') ? 'active' : '' }}">
     <i class="bi bi-clipboard-check"></i> Input Penilaian Visitasi
 </a>
+<a href="{{ route('admin.input-skor.index') }}"
+   class="nav-link {{ str_starts_with($current ?? '', 'admin.input-skor') ? 'active' : '' }}">
+    <i class="bi bi-star-fill"></i> Input Skor Kuesioner
+</a>
 <a href="{{ route('hasil.index') }}"
    class="nav-link {{ str_starts_with($current ?? '', 'hasil.') ? 'active' : '' }}">
     <i class="bi bi-clipboard-data"></i> Hasil Penilaian

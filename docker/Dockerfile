@@ -64,10 +64,11 @@ RUN sed -i 's/^user =.*/user = www-data/' /etc/php/8.5/fpm/pool.d/www.conf \
     && sed -i 's/^;clear_env =.*/clear_env = no/' /etc/php/8.5/fpm/pool.d/www.conf
 
 # PHP ini
-RUN echo "upload_max_filesize = 20M" > /etc/php/8.5/fpm/conf.d/99-custom.ini \
-    && echo "post_max_size = 20M" >> /etc/php/8.5/fpm/conf.d/99-custom.ini \
-    && echo "max_execution_time = 60" >> /etc/php/8.5/fpm/conf.d/99-custom.ini \
-    && echo "memory_limit = 256M" >> /etc/php/8.5/fpm/conf.d/99-custom.ini
+RUN echo "upload_max_filesize = 50M" > /etc/php/8.5/fpm/conf.d/99-custom.ini \
+    && echo "post_max_size = 50M" >> /etc/php/8.5/fpm/conf.d/99-custom.ini \
+    && echo "max_execution_time = 120" >> /etc/php/8.5/fpm/conf.d/99-custom.ini \
+    && echo "memory_limit = 256M" >> /etc/php/8.5/fpm/conf.d/99-custom.ini \
+    && echo "max_input_vars = 5000" >> /etc/php/8.5/fpm/conf.d/99-custom.ini
 
 # Nginx config
 RUN rm /etc/nginx/sites-enabled/default

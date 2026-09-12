@@ -59,9 +59,4 @@ class JadwalVisitasi extends Model
     {
         return $this->hasMany(PenilaianVisitasi::class, 'jadwal_id');
     }
-
-    public function verifikasi(): HasMany
-    {
-        return $this->hasMany(VerifikasiKuesioner::class, 'jadwal_id');
-    }
 }

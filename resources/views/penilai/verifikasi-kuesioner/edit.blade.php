@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Verifikasi Kuesioner - ' . $jadwal->desa->nama)
+@section('title', 'Verifikasi Kuesioner - ' . $desa->nama)
 
 @section('sidebar')
     @include($sidebarTemplate)
@@ -15,10 +15,8 @@
         <div>
             <h1 class="h4 fw-semibold mb-1">Verifikasi Kuesioner</h1>
             <p class="text-secondary mb-0 small">
-                <strong>{{ $jadwal->desa->nama }}</strong>
-                &middot; {{ $jadwal->periode->nama }}
-                &middot; {{ $jadwal->tanggal_visitasi->translatedFormat('d M Y') }}
-                &middot; Petugas {{ $jadwal->petugas->name }}
+                <strong>{{ $desa->nama }}</strong>
+                &middot; {{ $periode->nama }}
             </p>
         </div>
         <a href="{{ route('penilai.verifikasi-kuesioner.index') }}" class="btn btn-sm btn-outline-secondary">
@@ -32,7 +30,7 @@
         Total bobot kuesioner: <strong>{{ number_format($totalBobot, 2) }} / 100</strong>.
     </div>
 
-    <form method="POST" action="{{ route('penilai.verifikasi-kuesioner.update', $jadwal) }}" novalidate>
+    <form method="POST" action="{{ route('penilai.verifikasi-kuesioner.update', [$desa, $periode]) }}" novalidate>
         @csrf
         @method('PUT')
 

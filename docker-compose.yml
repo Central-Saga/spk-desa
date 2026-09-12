@@ -1,8 +1,6 @@
 services:
   app:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
+    image: ghcr.io/central-saga/spk-desa-app:latest
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
@@ -48,6 +46,9 @@ services:
       - TRUSTED_PROXIES=*
     volumes:
       - app_storage:/var/www/html/storage
+    networks:
+      - default
+      - dokploy-network
     depends_on:
       mysql:
         condition: service_healthy
@@ -80,3 +81,8 @@ volumes:
   mysql_data:
   redis_data:
   app_storage:
+
+networks:
+  default:
+  dokploy-network:
+    external: true

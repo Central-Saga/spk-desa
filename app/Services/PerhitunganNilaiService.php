@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Desa;
+use App\Models\IndikatorVisitasi;
 use App\Models\JawabanKuesioner;
 use App\Models\NilaiAkhir;
 use App\Models\PenilaianVisitasi;
@@ -92,6 +93,8 @@ final class PerhitunganNilaiService
             ->where('jawaban_kuesioner.desa_id', $desa->id)
             ->where('jawaban_kuesioner.periode_id', $periode->id)
             ->join('kuesioner', 'jawaban_kuesioner.kuesioner_id', '=', 'kuesioner.id')
+            ->where('kuesioner.is_active', true)
+            ->whereNull('kuesioner.deleted_at')
             ->sum(DB::raw('jawaban_kuesioner.skor * kuesioner.bobot_indikator / 100'));
     }
 
@@ -100,9 +103,17 @@ final class PerhitunganNilaiService
      */
     private function hitungNilaiVisitasi(Desa $desa, PeriodePenilaian $periode): float
     {
+        $templateIndikator = IndikatorVisitasi::activeTemplate($periode->id, $desa->id)
+            ->pluck('indikator_visitasi');
+
+        if ($templateIndikator->isEmpty()) {
+            return 0.0;
+        }
+
         return (float) PenilaianVisitasi::query()
             ->where('desa_id', $desa->id)
             ->where('periode_id', $periode->id)
+            ->whereIn('indikator_visitasi', $templateIndikator)
             ->sum(DB::raw('skor * bobot / 100'));
     }
 
@@ -115,16 +126,22 @@ final class PerhitunganNilaiService
     {
         $totalKuesioner = $periode->kuesioner()->where('is_active', true)->count();
         $kuesionerTerjawab = JawabanKuesioner::query()
-            ->where('desa_id', $desa->id)
-            ->where('periode_id', $periode->id)
+            ->where('jawaban_kuesioner.desa_id', $desa->id)
+            ->where('jawaban_kuesioner.periode_id', $periode->id)
+            ->join('kuesioner', 'jawaban_kuesioner.kuesioner_id', '=', 'kuesioner.id')
+            ->where('kuesioner.is_active', true)
+            ->whereNull('kuesioner.deleted_at')
             ->count();
 
-        $totalVisitasi = (int) $periode->jadwalVisitasi()->where('desa_id', $desa->id)->count();
+        $templateIndikator = IndikatorVisitasi::activeTemplate($periode->id, $desa->id)
+            ->pluck('indikator_visitasi');
+
+        $totalVisitasi = $templateIndikator->count();
         $visitasiDinilai = PenilaianVisitasi::query()
             ->where('desa_id', $desa->id)
             ->where('periode_id', $periode->id)
-            ->distinct('jadwal_id')
-            ->count('jadwal_id');
+            ->whereIn('indikator_visitasi', $templateIndikator)
+            ->count();
 
         return [
             'kuesioner_lengkap' => $totalKuesioner > 0 && $kuesionerTerjawab >= $totalKuesioner,

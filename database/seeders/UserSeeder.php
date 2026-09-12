@@ -17,7 +17,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Super Administrator',
                 'email' => 'superadmin@spk-desa.test',
-                'password' => Hash::make('password'),
+                'password' => Hash::make(env('APP_ADMIN_PASSWORD', 'FHi7ufAp1pbEibbJqPHvcrlz6GK80jw')),
                 'is_active' => true,
             ]
         );
@@ -30,7 +30,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Staff Admin Desa Bedugul',
                 'email' => 'staffdesa@spk-desa.test',
-                'password' => Hash::make('password'),
+                'password' => Hash::make(env('APP_ADMIN_PASSWORD', 'FHi7ufAp1pbEibbJqPHvcrlz6GK80jw')),
                 'is_active' => true,
                 'desa_id' => $desa?->id,
             ]
@@ -42,7 +42,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Staff Penilaian Komisi Informasi',
                 'email' => 'penilai@spk-desa.test',
-                'password' => Hash::make('password'),
+                'password' => Hash::make(env('APP_ADMIN_PASSWORD', 'FHi7ufAp1pbEibbJqPHvcrlz6GK80jw')),
                 'is_active' => true,
             ]
         );
@@ -53,7 +53,7 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Pimpinan Komisi Informasi Bali',
                 'email' => 'pimpinan@spk-desa.test',
-                'password' => Hash::make('password'),
+                'password' => Hash::make(env('APP_ADMIN_PASSWORD', 'FHi7ufAp1pbEibbJqPHvcrlz6GK80jw')),
                 'is_active' => true,
             ]
         );

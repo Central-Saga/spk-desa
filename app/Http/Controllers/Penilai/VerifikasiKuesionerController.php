@@ -5,25 +5,34 @@ namespace App\Http\Controllers\Penilai;
 use App\Enums\AksiAudit;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Penilai\SimpanVerifikasiKuesionerRequest;
-use App\Models\JadwalVisitasi;
+use App\Models\Desa;
 use App\Models\JawabanKuesioner;
 use App\Models\Kuesioner;
+use App\Models\PeriodePenilaian;
 use App\Models\User;
 use App\Models\VerifikasiKuesioner;
 use App\Services\AuditTrailService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class VerifikasiKuesionerController extends Controller
 {
     /** @var array<int, array{value: string, label: string}> */
-    private const STATUS_OPTIONS = [
+    private const STATUS_VERIFIKASI_OPTIONS = [
         ['value' => 'disetujui', 'label' => 'Disetujui'],
         ['value' => 'ditolak', 'label' => 'Ditolak'],
         ['value' => 'perlu_perbaikan', 'label' => 'Perlu Perbaikan'],
+    ];
+
+    /** @var array<int, array{value: string, label: string}> */
+    private const STATUS_RINGKASAN_OPTIONS = [
+        ['value' => 'belum', 'label' => 'Belum Diverifikasi'],
+        ['value' => 'sebagian', 'label' => 'Sebagian'],
+        ['value' => 'selesai', 'label' => 'Selesai'],
     ];
 
     public function index(Request $request): View
@@ -31,134 +40,126 @@ class VerifikasiKuesionerController extends Controller
         /** @var User $user */
         $user = Auth::user();
 
-        $query = JawabanKuesioner::query()
-            ->select(
-                'jawaban_kuesioner.id',
-                'jawaban_kuesioner.desa_id',
-                'jawaban_kuesioner.kuesioner_id',
-                'jawaban_kuesioner.periode_id',
-                'jawaban_kuesioner.jawaban',
-                'jawaban_kuesioner.skor',
-                'jawaban_kuesioner.status',
-            )
-            ->with(['desa', 'kuesioner', 'periode'])
-            ->whereHas('periode', fn ($q) => $q->where('status', 'aktif'))
-            ->where('jawaban_kuesioner.status', 'final')
-            ->leftJoin('jadwal_visitasi as jv', function ($join) {
-                $join->on('jawaban_kuesioner.desa_id', '=', 'jv.desa_id')
-                    ->on('jawaban_kuesioner.periode_id', '=', 'jv.periode_id');
-            })
-            ->leftJoin('verifikasi_kuesioner as vk', function ($join) {
-                $join->on('jawaban_kuesioner.kuesioner_id', '=', 'vk.kuesioner_id')
-                    ->on('jawaban_kuesioner.desa_id', '=', 'vk.desa_id')
-                    ->on('jawaban_kuesioner.periode_id', '=', 'vk.periode_id');
-            })
-            ->leftJoin('kuesioner', 'jawaban_kuesioner.kuesioner_id', '=', 'kuesioner.id')
-            ->whereNull('kuesioner.deleted_at')
-            ->addSelect(
-                'jv.id as jadwal_id',
-                'jv.tanggal_visitasi',
-                'jv.petugas_id',
-                'jv.status as jadwal_status',
-                'vk.status_verifikasi as verifikasi_status',
-                'vk.catatan as verifikasi_catatan',
-                'vk.id as verifikasi_id',
-            )
-            ->with(['desa.jadwalVisitasi' => fn ($q) => $q->orderByDesc('tanggal_visitasi')]);
-
-        if (! $user->isSuperAdmin()) {
-            // Tampilkan semua desa — baik yg punya jadwal (ditugaskan ke user ini)
-            // maupun yg belum punya jadwal sama sekali
-            $query->where(function ($q) use ($user) {
-                $q->where('jv.petugas_id', $user->id)
-                    ->orWhereNull('jv.id');
-            });
+        // Verifikasi kuesioner tidak terikat petugas jadwal; seluruh staff penilaian
+        // dan super admin bisa melihat/mengverifikasi jawaban final desa.
+        if (! $user->isSuperAdmin() && ! $user->isStaffPenilaian()) {
+            abort(403, 'Anda tidak memiliki hak akses untuk halaman ini.');
         }
 
-        if ($status = $request->string('status')->trim()->toString()) {
-            if ($status === 'belum') {
-                $query->whereNull('vk.status_verifikasi');
-            } else {
-                $query->where('vk.status_verifikasi', $status);
+        $periodeAktifIds = PeriodePenilaian::query()
+            ->where('status', 'aktif')
+            ->pluck('id');
+
+        if ($periodeAktifIds->isEmpty()) {
+            $items = new LengthAwarePaginator([], 0, 15);
+            $desaMap = collect();
+        } else {
+            $query = JawabanKuesioner::query()
+                ->select('jawaban_kuesioner.desa_id')
+                ->selectRaw('MAX(jawaban_kuesioner.periode_id) as periode_id')
+                ->selectRaw('COUNT(DISTINCT jawaban_kuesioner.kuesioner_id) as total_pertanyaan')
+                ->leftJoin('verifikasi_kuesioner as vk', function ($join) {
+                    $join->on('jawaban_kuesioner.kuesioner_id', '=', 'vk.kuesioner_id')
+                        ->on('jawaban_kuesioner.desa_id', '=', 'vk.desa_id')
+                        ->on('jawaban_kuesioner.periode_id', '=', 'vk.periode_id');
+                })
+                ->selectRaw('COUNT(DISTINCT vk.id) as total_diverifikasi')
+                ->selectRaw('MAX(vk.tanggal_verifikasi) as tanggal_verifikasi')
+                ->whereIn('jawaban_kuesioner.periode_id', $periodeAktifIds)
+                ->where('jawaban_kuesioner.status', 'final')
+                ->leftJoin('kuesioner', 'jawaban_kuesioner.kuesioner_id', '=', 'kuesioner.id')
+                ->whereNull('kuesioner.deleted_at')
+                ->groupBy('jawaban_kuesioner.desa_id');
+
+            if ($status = $request->string('status')->trim()->toString()) {
+                $query->havingRaw(match ($status) {
+                    'belum' => 'COUNT(DISTINCT vk.id) = 0',
+                    'sebagian' => 'COUNT(DISTINCT vk.id) >= 1 AND COUNT(DISTINCT vk.id) < COUNT(DISTINCT jawaban_kuesioner.kuesioner_id)',
+                    'selesai' => 'COUNT(DISTINCT vk.id) >= COUNT(DISTINCT jawaban_kuesioner.kuesioner_id)',
+                    default => '1=1',
+                });
             }
+
+            $items = $query
+                ->orderBy('tanggal_verifikasi', 'desc')
+                ->paginate(15)
+                ->withQueryString();
+
+            $desaMap = $items->isEmpty()
+                ? collect()
+                : Desa::query()
+                    ->whereIn('id', $items->pluck('desa_id'))
+                    ->get()
+                    ->keyBy('id');
         }
-        $items = $query
-            ->orderBy('jv.tanggal_visitasi', 'desc')
-            ->orderBy('kuesioner.urutan')
-            ->paginate(15)
-            ->withQueryString();
 
         return view('penilai.verifikasi-kuesioner.index', [
             'items' => $items,
-            'statusOptions' => self::STATUS_OPTIONS,
+            'desaMap' => $desaMap,
+            'statusOptions' => self::STATUS_RINGKASAN_OPTIONS,
             'filters' => ['status' => $request->input('status')],
         ]);
     }
 
-    public function edit(JadwalVisitasi $jadwalVisitasi): View|RedirectResponse
+    public function edit(Desa $desa, PeriodePenilaian $periode): View|RedirectResponse
     {
-        /** @var User $user */
-        $user = Auth::user();
-
-        if (! $user->isSuperAdmin() && $jadwalVisitasi->petugas_id !== $user->id) {
-            abort(403, 'Anda hanya dapat memverifikasi jadwal yang ditugaskan kepada Anda.');
-        }
-
-        $jadwalVisitasi->load(['desa', 'periode', 'petugas']);
-
         $kuesionerList = Kuesioner::query()
-            ->where('periode_id', $jadwalVisitasi->periode_id)
+            ->where('periode_id', $periode->id)
             ->where('is_active', true)
             ->orderBy('urutan')
             ->get();
 
+        if ($kuesionerList->isEmpty()) {
+            return redirect()
+                ->route('penilai.verifikasi-kuesioner.index')
+                ->with('warning', 'Belum ada pertanyaan kuesioner untuk periode ini.');
+        }
+
         $jawabanDesa = JawabanKuesioner::query()
-            ->where('desa_id', $jadwalVisitasi->desa_id)
-            ->where('periode_id', $jadwalVisitasi->periode_id)
+            ->where('desa_id', $desa->id)
+            ->where('periode_id', $periode->id)
             ->whereIn('kuesioner_id', $kuesionerList->pluck('id'))
             ->get()
             ->keyBy('kuesioner_id');
 
         $verifikasiExisting = VerifikasiKuesioner::query()
-            ->where('jadwal_id', $jadwalVisitasi->id)
+            ->where('desa_id', $desa->id)
+            ->where('periode_id', $periode->id)
             ->get()
             ->keyBy('kuesioner_id');
 
         $totalBobot = $kuesionerList->sum('bobot_indikator');
 
         return view('penilai.verifikasi-kuesioner.edit', [
-            'jadwal' => $jadwalVisitasi,
+            'desa' => $desa,
+            'periode' => $periode,
             'kuesionerList' => $kuesionerList,
             'jawabanDesa' => $jawabanDesa,
             'verifikasiExisting' => $verifikasiExisting,
             'totalBobot' => $totalBobot,
-            'statusOptions' => self::STATUS_OPTIONS,
+            'statusOptions' => self::STATUS_VERIFIKASI_OPTIONS,
         ]);
     }
 
     public function update(
         SimpanVerifikasiKuesionerRequest $request,
-        JadwalVisitasi $jadwalVisitasi,
+        Desa $desa,
+        PeriodePenilaian $periode,
     ): RedirectResponse {
         /** @var User $user */
         $user = Auth::user();
 
-        if (! $user->isSuperAdmin() && $jadwalVisitasi->petugas_id !== $user->id) {
-            abort(403);
-        }
-
         $items = (array) $request->input('verifikasi', []);
 
-        DB::transaction(function () use ($items, $jadwalVisitasi, $user) {
+        DB::transaction(function () use ($items, $desa, $periode, $user) {
             foreach ($items as $item) {
                 VerifikasiKuesioner::updateOrCreate(
                     [
-                        'jadwal_id' => $jadwalVisitasi->id,
+                        'desa_id' => $desa->id,
+                        'periode_id' => $periode->id,
                         'kuesioner_id' => $item['kuesioner_id'],
                     ],
                     [
-                        'desa_id' => $jadwalVisitasi->desa_id,
-                        'periode_id' => $jadwalVisitasi->periode_id,
                         'status_verifikasi' => $item['status_verifikasi'],
                         'catatan' => $item['catatan'] ?? null,
                         'diverifikasi_oleh' => $user->id,
@@ -171,13 +172,13 @@ class VerifikasiKuesionerController extends Controller
         AuditTrailService::record(
             $user,
             AksiAudit::Update,
-            "Menyimpan verifikasi kuesioner {$jadwalVisitasi->desa->nama} ({$jadwalVisitasi->periode->nama})",
-            $jadwalVisitasi,
+            "Menyimpan verifikasi kuesioner {$desa->nama} ({$periode->nama})",
+            $desa,
             ['jumlah_pertanyaan' => count($items)]
         );
 
         return redirect()
-            ->route('penilai.verifikasi-kuesioner.edit', $jadwalVisitasi)
+            ->route('penilai.verifikasi-kuesioner.edit', [$desa, $periode])
             ->with('success', 'Verifikasi kuesioner berhasil disimpan.');
     }
 }
