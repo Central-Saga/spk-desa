@@ -11,6 +11,8 @@ use App\Models\IndikatorVisitasi;
 use App\Models\JadwalVisitasi;
 use App\Models\JawabanKuesioner;
 use App\Models\Kuesioner;
+use App\Models\NilaiAkhir;
+use App\Models\PenilaianVisitasi;
 use App\Models\PeriodePenilaian;
 use App\Models\User;
 use App\Services\PerhitunganNilaiService;
