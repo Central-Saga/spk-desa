@@ -55,11 +55,17 @@
             </div>
         </div>
 
-        <div class="form-check mb-4">
+        <div class="form-check mb-2">
             <input class="form-check-input" type="checkbox" id="remember" name="remember" value="1">
             <label class="form-check-label small" for="remember">
                 Ingat saya
             </label>
+        </div>
+
+        <div class="d-flex justify-content-end mb-2">
+            <a href="{{ route('password.request') }}" class="small text-decoration-none">
+                Lupa password?
+            </a>
         </div>
 
         <button type="submit" class="btn btn-primary w-100 fw-medium">

@@ -3,6 +3,7 @@
 use App\Enums\RoleSlug;
 use App\Http\Controllers\Admin;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Desa;
 use App\Http\Controllers\HasilPenilaianController;
 use App\Http\Controllers\LaporanController;
@@ -19,6 +20,17 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [LoginController::class, 'authenticate'])
         ->middleware('throttle:5,1')
         ->name('login.attempt');
+
+    Route::get('/lupa-password', [PasswordResetController::class, 'requestForm'])
+        ->name('password.request');
+    Route::post('/lupa-password', [PasswordResetController::class, 'sendResetLink'])
+        ->middleware('throttle:5,1')
+        ->name('password.email');
+    Route::get('/reset-password/{token}', [PasswordResetController::class, 'resetForm'])
+        ->name('password.reset');
+    Route::post('/reset-password', [PasswordResetController::class, 'update'])
+        ->middleware('throttle:5,1')
+        ->name('password.update');
 });
 
 Route::middleware('auth')->group(function () {

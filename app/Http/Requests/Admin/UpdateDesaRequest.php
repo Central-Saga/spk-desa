@@ -3,7 +3,9 @@
 namespace App\Http\Requests\Admin;
 
 use App\Models\User;
+use App\Support\BaliRegion;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateDesaRequest extends FormRequest
 {
@@ -34,8 +36,11 @@ class UpdateDesaRequest extends FormRequest
         return [
             'nama' => ['required', 'string', 'max:150'],
             'alamat' => ['required', 'string'],
-            'kecamatan' => ['required', 'string', 'max:100'],
-            'kabupaten' => ['required', 'string', 'max:100'],
+            'kabupaten' => ['required', 'string', Rule::in(BaliRegion::kabupaten())],
+            'kecamatan' => [
+                'required', 'string',
+                Rule::in(BaliRegion::kecamatanByKabupaten()[$this->string('kabupaten')->toString()] ?? []),
+            ],
             'kode_pos' => ['nullable', 'string', 'max:10'],
             'telepon' => ['nullable', 'string', 'max:30'],
             'email' => ['nullable', 'email', 'max:150'],

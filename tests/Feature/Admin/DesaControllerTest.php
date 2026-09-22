@@ -50,6 +50,19 @@ it('validasi wajib saat tambah desa', function () {
         ->assertSessionHasErrors(['nama', 'alamat', 'kecamatan', 'kabupaten']);
 });
 
+it('menolak kecamatan yang tidak sesuai kabupaten', function () {
+    $this->actingAs($this->admin)
+        ->post('/admin/desa', [
+            'nama' => 'Desa Uji',
+            'alamat' => 'Jl. Uji',
+            'kabupaten' => 'Badung',
+            'kecamatan' => 'Bangli',
+        ])
+        ->assertSessionHasErrors(['kecamatan']);
+
+    expect(Desa::query()->where('nama', 'Desa Uji')->exists())->toBeFalse();
+});
+
 // Update
 it('Super Admin dapat update desa', function () {
     $desa = Desa::factory()->create(['nama' => 'Desa Lama']);

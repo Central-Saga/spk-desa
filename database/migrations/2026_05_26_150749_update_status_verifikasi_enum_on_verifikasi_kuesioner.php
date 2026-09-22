@@ -1,17 +1,22 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement("ALTER TABLE verifikasi_kuesioner MODIFY COLUMN status_verifikasi ENUM('disetujui', 'ditolak', 'perlu_perbaikan') NOT NULL");
+        Schema::table('verifikasi_kuesioner', function (Blueprint $table) {
+            $table->enum('status_verifikasi', ['disetujui', 'ditolak', 'perlu_perbaikan'])->change();
+        });
     }
 
     public function down(): void
     {
-        DB::statement("ALTER TABLE verifikasi_kuesioner MODIFY COLUMN status_verifikasi ENUM('ya', 'tidak') NOT NULL");
+        Schema::table('verifikasi_kuesioner', function (Blueprint $table) {
+            $table->enum('status_verifikasi', ['ya', 'tidak'])->change();
+        });
     }
 };

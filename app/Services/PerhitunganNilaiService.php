@@ -95,7 +95,7 @@ final class PerhitunganNilaiService
             ->join('kuesioner', 'jawaban_kuesioner.kuesioner_id', '=', 'kuesioner.id')
             ->where('kuesioner.is_active', true)
             ->whereNull('kuesioner.deleted_at')
-            ->sum(DB::raw('jawaban_kuesioner.skor * kuesioner.bobot_indikator / 100'));
+            ->sum(DB::raw('jawaban_kuesioner.skor * kuesioner.bobot_indikator / 100.0'));
     }
 
     /**
@@ -114,7 +114,7 @@ final class PerhitunganNilaiService
             ->where('desa_id', $desa->id)
             ->where('periode_id', $periode->id)
             ->whereIn('indikator_visitasi', $templateIndikator)
-            ->sum(DB::raw('skor * bobot / 100'));
+            ->sum(DB::raw('skor * bobot / 100.0'));
     }
 
     /**

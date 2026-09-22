@@ -20,8 +20,8 @@ class DesaFactory extends Factory
         return [
             'nama' => 'Desa '.fake()->unique()->city(),
             'alamat' => fake()->streetAddress(),
-            'kecamatan' => fake()->word(),
-            'kabupaten' => fake()->randomElement(['Tabanan', 'Bangli', 'Gianyar', 'Karangasem']),
+            'kecamatan' => 'Mengwi',
+            'kabupaten' => 'Badung',
             'kepala_desa' => fake()->name(),
             'jumlah_penduduk' => fake()->numberBetween(500, 10000),
             'is_active' => true,
